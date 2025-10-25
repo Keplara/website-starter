@@ -1,0 +1,30 @@
+redis:
+  username: ${REDIS_USER}
+  password: ${REDIS_PASSWORD}
+  
+server:
+  port: ${PORT}
+  ssl:
+    enabled: true
+logging:
+  level:
+    org:
+      springframework:
+        security:
+          TRACE
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URI}
+  session:
+    redis:
+      repository-type: default
+      expiration: 60
+      host: ${REDIS_HOST}
+    timeout: 1m
+
+jwt:
+  secretKey: ${JWT_KEY}
+  payloadKey: ${JWT_PAYLOAD_KEY} 
+CLIENT_REGISTRATION_SECRET: ${CLIENT_REGISTRATION_SECRET}

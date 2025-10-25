@@ -1,0 +1,7 @@
+<div [ngStyle]="stylesObject">
+    <p #textElement [ngStyle]="{ 'font-size': 'calc(' + initialRemSize + 'rem + 1.25vw)' }">
+        <ng-content>
+        </ng-content>
+    </p>
+</div>
+  

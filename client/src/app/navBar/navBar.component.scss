@@ -1,0 +1,68 @@
+@import '../../theme.scss';
+span {
+    color: $primaryFontColor;
+    font-family: $primaryFontFamily;
+    font-size: 38px;
+}
+.search-bar-wrapper {
+  
+  padding-left: 50px;
+}
+
+
+.search-results-container, .mobile-search-results-container {
+  top: 100%;
+  background: white;
+  border: 1px solid black;
+  position: absolute;
+  left: 100px;
+  
+  
+  mat-list-item:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
+  mat-list-item:nth-child(even) {
+    background-color: #1c926b81;
+  }
+}
+
+.mobile-search-results-container {
+  left: 0px;
+  max-width: 100%;
+  top: 115px;
+}
+// do mobile
+@media (max-width: 768px) {
+  .desktop-search {
+    display: none;
+  }
+
+  .mobile-search {
+    display: block;
+  }
+}
+
+
+/* Tablet */
+@media (max-width: 768px) {
+  .desktop-search {
+    display: none;
+  }
+  .mobile-search-results-container {
+    width: 100%;
+  }
+
+  .mobile-search {
+    display: block;
+  }
+}
+/* Desktop */
+@media (min-width: 769px) {
+  .desktop-search {
+    display: block;
+  }
+
+  .mobile-search {
+    display: none;
+  }
+}

@@ -1,0 +1,62 @@
+{"properties": [
+  {
+    "name": "auth.client.id",
+    "type": "java.lang.String",
+    "description": "A description for 'auth-client_id'"
+  },
+  {
+    "name": "auth.client.token-uri",
+    "type": "java.lang.String",
+    "description": "A description for 'auth-client_token_uri'"
+  },
+  {
+    "name": "auth.client.authorization-grant-type",
+    "type": "java.lang.String",
+    "description": "A description for 'auth-client_authorization_grant_type'"
+  },
+  {
+    "name": "auth.client.scope",
+    "type": "java.lang.String",
+    "description": "A description for 'auth-client_scope'"
+  },
+  {
+    "name": "redis.host",
+    "type": "java.lang.String",
+    "description": "A description for 'redis.host'"
+  },
+  {
+    "name": "redis.port",
+    "type": "java.lang.Integer",
+    "description": "A description for 'redis.port'"
+  },
+  {
+    "name": "redis.username",
+    "type": "java.lang.String",
+    "description": "A description for 'redis.username'"
+  },
+  {
+    "name": "redis.password",
+    "type": "java.lang.String",
+    "description": "A description for 'redis.password'"
+  },
+  {
+    "name": "jwt.secret-key",
+    "type": "java.lang.String",
+    "description": "A description for 'jwt.secret-key'"
+  },
+  {
+    "name": "jwt.payloadKey",
+    "type": "java.lang.String",
+    "description": "A description for 'jwt.payloadKey'"
+  },
+  {
+    "name": "spring.session.redis.expiration",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.session.redis.expiration'"
+  },
+  {
+    "name": "auth-client_secret",
+    "type": "java.lang.String",
+    "description": "A description for 'auth-client_secret'"
+  }
+]}

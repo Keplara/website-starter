@@ -1,0 +1,43 @@
+.content {
+  display: flex;
+  height: 100%;
+
+  .product-details {
+    padding-left: 16px; /* Add space between the image and title */
+    font-size: 12px;
+    position: relative;
+    .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: black;
+    }
+
+    .details-bar {
+      position: absolute; 
+      bottom: 0px;
+      .property {
+        color: black;
+        font-size: 14px;
+        font-weight: 300;
+        padding-right: 15px;
+      }
+    }
+  }
+
+  .image-wrapper {
+    max-width: 70px;
+    flex-wrap: nowrap;
+    display: flex;
+    box-sizing: content-box;
+    height: 97%;
+    border: 1px black solid;
+    img {
+      width: 100%;
+      box-sizing: border-box;
+      height: 100%;
+      padding: 5px;
+    }
+  }
+}
+
+

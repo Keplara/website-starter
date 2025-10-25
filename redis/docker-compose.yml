@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  redis-development:
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-development-data:/data
+
+  redis-production:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-prod
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-production-data:/data
+
+volumes:
+  redis-development-data:
+  redis-production-data:

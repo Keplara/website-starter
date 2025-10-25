@@ -1,0 +1,50 @@
+[{
+    "_id": "66e4b9ffac267258b342cb2e",
+    "image_url": "http://localhost:4200/assets/Sample Dataset/images/03.png",
+    "name": "Red Bull The Winter Edition Arctic Berry Energy Drink",
+    "barcode_id": "0611269841336",
+    "food_category": "Soda",
+    "ingredients": [
+      "Carbonated Water",
+      "Sugar",
+      "Glucose",
+      "Caffeine",
+      "Citric Acid",
+      "Taurine"
+    ],
+    "nutrient_facts": {
+      "serving_size": "250",
+      "serving_per_container": "1",
+      "calories": "110",
+      "total_fat": "0",
+      "saturated_fat": "0",
+      "trans_fat": "0",
+      "cholesterol": "0",
+      "sodium": "105",
+      "total_carbohydrate": "28",
+      "dietary_fiber": "0",
+      "total_sugar": "27",
+      "added_sugar": "27",
+      "protein": "0",
+      "calcium": "0",
+      "iron": "0",
+      "potassium": "0",
+      "vitamin_a": "0",
+      "vitamin_b": "0",
+      "vitamin_b6": "0",
+      "vitamin_c": "0",
+      "vitamin_d": "0",
+      "vitamin_b12": "0",
+      "niacin": "0",
+      "riboflavin": "0",
+      "pantothenic_acid": "0",
+      "energy": "80"
+    },
+    "allergens": [
+      "Contains caffeine"
+    ],
+    "company": {
+      "gtinUpc": "0611269841336",
+      "prefix": "Red Bull GmbH"
+    }
+  }]

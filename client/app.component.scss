@@ -1,0 +1,46 @@
+.spacer {
+  flex: 1 1 auto; /* Pushes buttons to the right */
+}
+
+mat-toolbar {
+  display: flex;
+  justify-content: space-between;
+}
+.qwitcher-grypen-regular {
+  font-family: "Qwitcher Grypen", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.qwitcher-grypen-bold {
+  font-family: "Qwitcher Grypen", cursive;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.mat-toolbar.mat-primary {
+  --mat-toolbar-container-background-color: #394931 !important;
+  --mat-toolbar-container-text-color: white !important;
+}
+  
+// @font-face {
+//   font-family: 'MyCustomFont';
+//   src: url('fonts/myfont.ttf') format('truetype'),
+//        url('fonts/myfont.otf') format('opentype');
+//   font-weight: normal;
+//   font-style: normal;
+// }
+
+// @font-face {
+//   font-family: 'MyCustomFont';
+//   src: url('fonts/myfont.woff2') format('woff2'),  /* Preferred format */
+//        url('fonts/myfont.woff') format('woff'),    /* Fallback for older browsers */
+//        url('fonts/myfont.ttf') format('truetype'), /* Fallback */
+//        url('fonts/myfont.otf') format('opentype'); /* Additional fallback */
+//   font-weight: normal;
+//   font-style: normal;
+// }
+
+h1 {
+  font-family: 'MyCustomFont', serif; /* Apply custom font to headers */
+}

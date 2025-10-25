@@ -1,0 +1,42 @@
+<main class="product-overview">
+  @if (product){
+    <div class="flex-container">
+      <div class="product-card-wrapper">
+          <mat-card class="example-card" appearance="outlined">
+              <mat-card-header>
+                <mat-card-title>{{product.name}}</mat-card-title>
+              </mat-card-header>
+              <img mat-card-image src="{{product.image_url}}" alt="Photo of a Shiba Inu">
+              <mat-card-content>
+                <p style="text-align: center;">
+                  UPC: {{product.barcode_id}}
+                </p>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button>LIKE</button>
+                <button mat-button>SHARE</button>
+              </mat-card-actions>
+            </mat-card>
+      </div>
+    </div>
+
+    <div class="flex-container">
+      <div class="table-fact-wrapper">
+        <div class="nutrition-label-wrapper">
+          <app-nutritionLabel></app-nutritionLabel>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-fact-wrapper">
+      <h1 class="title">Ingredients:</h1>
+      <div class="ingredients-table-wrapper">
+        <app-ingredientsTable></app-ingredientsTable>
+      </div>
+    </div>
+
+  } @else {
+    <h2>Sorry, the product you are looking for does not exist.</h2>
+  }
+
+</main>

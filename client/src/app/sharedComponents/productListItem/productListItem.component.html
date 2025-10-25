@@ -1,0 +1,25 @@
+      <mat-list-item (click)="onClick()" style="height: 80px;">
+        <!-- Square Image on the Left -->
+        <main class="content">
+          <div class="image-wrapper">
+            <img
+              matListAvatar
+              [src]="product.image_url"
+              alt="{{ product.name }}"
+              class="product-image"
+            />
+          </div>
+    
+          <!-- Title on the Right -->
+          <div class="product-details">
+            <p class="title" matLine>{{ product.name }}</p>
+    
+            <div class="details-bar">
+              <span class="property upc"><b>UPC: </b> {{ product.barcode_id }}</span>
+              <span class="property brandName"><b>Brand:</b> {{ product.brand_name }}</span>
+              <span class="property foodCategory"><b>Category:</b> {{ product.food_category }}</span>
+            </div>
+          </div>
+        </main>
+      </mat-list-item>
+    

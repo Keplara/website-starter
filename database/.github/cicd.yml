@@ -1,0 +1,119 @@
+name: Build and Push Docker Image + Deploy to ECS
+on:
+  push:
+    branches:
+      - main
+      - staging
+
+jobs:
+  set-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.ENVIRONMENT }}
+      imageTag: ${{ steps.set-env.outputs.IMAGE_TAG }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set environment based on branch
+        id: set-env
+        run: |
+          case "${{ github.ref }}" in
+            refs/heads/main)
+              echo "ENVIRONMENT=Production" >> $GITHUB_ENV
+              echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+              echo "::set-output name=ENVIRONMENT::Production" # Set the output for ENVIRONMENT
+              echo "::set-output name=IMAGE_TAG::latest"     # Set the output for IMAGE_TAG
+              ;;
+            refs/heads/staging)
+              echo "ENVIRONMENT=Staging" >> $GITHUB_ENV
+              echo "IMAGE_TAG=staging" >> $GITHUB_ENV
+              echo "::set-output name=ENVIRONMENT::Staging"  # Set the output for ENVIRONMENT
+              echo "::set-output name=IMAGE_TAG::staging"    # Set the output for IMAGE_TAG
+              ;;
+          esac
+
+  build-and-push-image:
+    needs: set-environment
+    runs-on: ubuntu-latest
+    environment: ${{ needs.set-environment.outputs.environment }}
+    outputs: 
+      environment: ${{ needs.set-environment.outputs.environment }}
+      imageTag: ${{ needs.set-environment.outputs.imageTag }}
+    env:
+      ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}  
+      CONTAINER_NAME: Client
+      IMAGE_TAG: ${{ needs.set-environment.outputs.imageTag }} 
+      DOCKERFILE: ${{ needs.set-environment.outputs.environment == 'staging' && 'Dockerfile.staging' || 'Dockerfile' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_DEFAULT_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        shell: bash
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+            docker build -e -f $DOCKERFILE -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+            echo "done"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push-image
+    environment: ${{ needs.build-and-push-image.outputs.environment }}
+    env:
+      IMAGE_TAG: ${{ needs.build-and-push-image.outputs.imageTag }}
+      ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}  
+      ENVIRONMENT: ${{ needs.build-and-push-image.outputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_ref }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_DEFAULT_REGION }}
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Render Task Definition
+        id: render-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          task-definition: .aws/${{ env.ENVIRONMENT }}-task-definition.json
+          container-name: Redis
+          aws-region: ${{ vars.AWS_DEFAULT_REGION }}
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          environment-variables: |
+            REDIS_USER=${{ env.REDIS_USER }}
+            REDIS_PASSWORD=${{ env.REDIS_PASSWORD }}
+
+      - name: Deploy to ${{ needs.build-and-push-image.outputs.environment }}
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-definition.outputs.task-definition }}
+          service: Redis${{ needs.build-and-push-image.outputs.environment == 'staging' && 'Staging' || 'Production' }}
+          cluster: MySiteCluster
+          aws-region: ${{ vars.AWS_DEFAULT_REGION }}
+          run-task-launch-type: EC2
+          wait-for-service-stability: true
+          force-new-deployment: true
