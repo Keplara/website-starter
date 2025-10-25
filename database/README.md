@@ -143,25 +143,23 @@ This repository contains helper scripts and configuration for running MongoDB in
 If you want, I can also: add a sample `.env.example`, validate `docker-compose.yml`, or add a short troubleshooting section tailored to errors you see. Tell me which you'd like next.
 
 ## Create TLS Cert
+#### Certs on windows will need to be LF not CRLF
 
 ### Create key
-openssl genrsa -out ca.key 4096
+mkdir certs \
+openssl genrsa -out certs/ca.key 4096
 
-# Create CA certificate (self-signed)
-openssl req -x509 -new -nodes -key ca.key -sha256 -days 365 \
-  -out ca.pem \
-  -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=LocalTestCA"
+# Create CA certificate (self-signed) Note: use powershell if on windows
+openssl req -x509 -new -nodes -key certs/ca.key -sha256 -days 365 -out certs/ca.pem -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=LocalTestCA"
 
 # Generate server private key
-openssl genrsa -out mongodb.key 4096
+openssl genrsa -out certs/mongodb.key 4096
 
-# Generate a Certificate Signing Request (CSR)
-openssl req -new -key mongodb.key -out mongodb.csr \
-  -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=localhost"
+# Generate a Certificate Signing Request (CSR) Note: use powershell if on windows
+openssl req -new -key certs/mongodb.key -out certs/mongodb.csr -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=localhost"
 
-# Sign the server CSR with your CA
-openssl x509 -req -in mongodb.csr -CA ca.pem -CAkey ca.key -CAcreateserial \
-  -out mongodb.crt -days 365 -sha256
+# Sign the server CSR with your CA Note: use powershell if on windows
+openssl x509 -req -in certs/mongodb.csr -CA certs/ca.pem -CAkey certs/ca.key -CAcreateserial -out certs/mongodb.crt -days 365 -sha256
 
 # Combine the private key and signed certificate
-cat mongodb.key mongodb.crt > mongodb.pem
+cat certs/mongodb.key certs/mongodb.crt > certs/mongodb.pem
