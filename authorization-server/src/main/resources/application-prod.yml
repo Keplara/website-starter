@@ -1,0 +1,91 @@
+redis:
+  username: ${REDIS_USER}
+  password: ${REDIS_PASSWORD}
+  
+server:
+  port: ${PORT}
+  ssl:
+    enabled: false
+    bundle: "webserver"
+logging:
+  level:
+    org:
+      springframework:
+        security:
+          TRACE
+spring:
+  data:
+    mongodb:
+      ssl:
+        enabled: true
+      database: ${MONGO_DATABASE}
+      username: ${MONGO_USER}
+      password: ${MONGO_PASSWORD}
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
+      bundle: "mongo_bundle"
+  ssl:
+    bundle:
+      jks:
+        mongo_bundle:
+          key:
+            alias: "mongo"
+          keystore:
+            location: ${MONGO_KEY_STORE_LOCATION}
+            password: ${MONGO_KEY_STORE_PASSWORD}
+            type: "JKS"
+          truststore:
+            location: ${MONGO_TRUST_STORE_LOCATION}
+            password: ${MONGO_TRUST_STORE_PASSWORD}
+            type: "JKS"
+        # redis:
+        #   key:
+        #     alias: "redis"
+        #   keystore:
+        #     location: ${REDIS_KEY_STORE_LOCATION}
+        #     password: "${REDIS_KEYSTORE_PASSWORD}"
+        #     type: "JKS"
+        #   truststore:
+        #     location: ${REDIS_TRUST_STORE_LOCATION}
+        #     password: "${REDIS_TRUSTSTORE_PASSWORD}"
+        #     type: "JKS"
+        webserver:
+          key:
+            alias: "web"
+          keystore:
+            location: ${WEBSERVER_KEY_STORE_LOCATION}
+            password: "${WEBSERVER_KEYSTORE_PASSWORD}"
+            type: "JKS"
+          truststore:
+            location: ${WEBSERVER_TRUST_STORE_LOCATION}
+            password: "${WEBSERVER_TRUSTSTORE_PASSWORD}"
+            type: "JKS"
+  session:
+    redis:
+      repository-type: default
+      expiration: 60
+      host: ${REDIS_HOST}
+    timeout: 1m
+local:
+  jwt:
+    secretKey: ${JWT_KEY}
+    payloadKey: ${JWT_PAYLOAD_KEY} 
+  client:
+    registration:
+      secret: ${CLIENT_REGISTRATION_SECRET}
+  email:
+    mode: smtp       # "ses" or "smtp"
+    smtp:
+      host:  ${EMAIL_HOST}
+      port: ${EMAIL_PORT}
+      username: ${EMAIL_USERNAME}
+      password: ${EMAIL_PASSWORD}
+  aws:
+    accessKey: ${AWS_S3_ACCESS_KEY}
+    secretKey: ${AWS_S3_SECRET_KEY}
+    ses:
+      region: ${AWS_REGION}
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+      endpoint: ${AWS_S3_ENDPOINT}  # e.g., http://localhost:9000 for MinIO
+      region: ${AWS_REGION}

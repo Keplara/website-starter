@@ -1,0 +1,11 @@
+
+<mat-form-field class="search-form-field" [ngStyle]="stylesObject" appearance="fill">
+  <mat-label>Search</mat-label>
+  <input class="myinput" matInput [(ngModel)]="searchQuery" value="" placeholder="Enter your search query">
+  <button  mat-icon-button matSuffix (error)="hasError" (click)="onSearch()">
+    <mat-icon class="icon-button" style="color: black;">search</mat-icon>
+  </button>
+  @if (hasError){
+     <mat-error>{{ error }}</mat-error>
+  }
+</mat-form-field>

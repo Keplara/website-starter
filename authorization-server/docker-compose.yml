@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: authorization-server
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    ports:
+      - "8084:8084"
+    env_file:
+      - ./.env
+  app-development:
+    container_name: authorization-server-development
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+    ports:
+      - "8084:8084"
+    env_file:
+      - ./.env

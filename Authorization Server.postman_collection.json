@@ -1,0 +1,577 @@
+{
+	"info": {
+		"_postman_id": "ffd03d16-cd34-4b19-84d9-e09c47be7c35",
+		"name": "Authorization Server",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44460512",
+		"_collection_link": "https://grantmitchell-3648251.postman.co/workspace/Grant-Mitchell's-Workspace~b745fcd4-637e-4e8e-8688-3626f9bedabc/collection/44460512-ffd03d16-cd34-4b19-84d9-e09c47be7c35?action=share&source=collection_link&creator=44460512"
+	},
+	"item": [
+		{
+			"name": "Create basic Account",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Origin",
+						"value": "http://localhost:8082",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"QuinnLawson32\", \r\n    \"emailAddress\": \"quinnal2@gmail.com\",\r\n    \"password\": \"Password\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8084/create-account",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"create-account"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verify basic Account",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "eyJwMmMiOjEyMDAwMCwicDJzIjoiTmVXNXYxY3dUbHdFRDJTcHZpWnp5OEtzd3praTV3WV83bVlBWXZMdnhUc2pseEhaT1lNc1NlTWVFZFctLW94U2xaNi02Z2VwRjNzcS03aEx5UG5pUmciLCJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.NJAs2-tS0svAm2uDpNsYo2K9jiEqNWg4ySyx5VaX7dF4EmZ2-_OcLg.eG35ZGh_SOCJ_ont.V2Sl_r7HLKAOxQUIMhoSAvXxvLBnSN0YZJhiAVcDuJg5uHK-L9r-UlpXeUdhUMHXuTXgTwaHk72ODqkcpu4SCQksRXHi1xcZDn_ZeB-3Gu5Daaiz-oDSGwytWv5iw8zQMHkmEEb5eOyE6pVWGcnmggWbLG4P9Lggq7pMGqw7cDsaIlHpfZFLnbhm_BefWwkALnBjdg.W2WDV5gPgQ9EgYFpnvngCw",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8084/verify-new-account",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"verify-new-account"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "eyJwMmMiOjEyMDAwMCwicDJzIjoiTmVXNXYxY3dUbHdFRDJTcHZpWnp5OEtzd3praTV3WV83bVlBWXZMdnhUc2pseEhaT1lNc1NlTWVFZFctLW94U2xaNi02Z2VwRjNzcS03aEx5UG5pUmciLCJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.NJAs2-tS0svAm2uDpNsYo2K9jiEqNWg4ySyx5VaX7dF4EmZ2-_OcLg.eG35ZGh_SOCJ_ont.V2Sl_r7HLKAOxQUIMhoSAvXxvLBnSN0YZJhiAVcDuJg5uHK-L9r-UlpXeUdhUMHXuTXgTwaHk72ODqkcpu4SCQksRXHi1xcZDn_ZeB-3Gu5Daaiz-oDSGwytWv5iw8zQMHkmEEb5eOyE6pVWGcnmggWbLG4P9Lggq7pMGqw7cDsaIlHpfZFLnbhm_BefWwkALnBjdg.W2WDV5gPgQ9EgYFpnvngCw",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Forgot Password",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8084/forgot-password?emailOrUsername=Grant_Mitchell",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"forgot-password"
+					],
+					"query": [
+						{
+							"key": "emailOrUsername",
+							"value": "Grant_Mitchell"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reset Password",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "eyJwMmMiOjEyMDAwMCwicDJzIjoiX1dwMmFNRGVMS0Z3UElZQnJTa0pjVnFqcFpsQmhuX0dVUG92NjBsTWtteVVmdDl6Q0dRd1dJX29LVlJFalZFUG4yVHFTN3poME5iMG5jWlBxaGpvdFEiLCJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.8WkqwbsdyHHVwW5ZL-V17TH34e_nYvQmXxrtuTOPrQ4UFLNT5qHTsw.ZsdWd5sHk1DZBiE4.j_37nFdhTmTHzGfool1Zb8gzWbfkWelIXM39RQL55IEl_tv3F28TNs3_UulPoGzt2HBq6OGKp_XCUN2Oo8yCAKn0YpnI52dUXtBijsPjHdfloNV9t34.LRGCs6ZAA3P2CraE5BnMbQ",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8084/reset-password?newPassword=HappyMeal",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"reset-password"
+					],
+					"query": [
+						{
+							"key": "newPassword",
+							"value": "HappyMeal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SES Test Create Email",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8084/send-test-email",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"send-test-email"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client Registration Token",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "internal-registrar-client",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "naifniwuenfanfiownef",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "scope",
+							"value": "client.create",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8084/oauth2/token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client registration",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{AuthorizationServerAccessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"client_name\": \"developer_client_hash\",\r\n  \"redirect_uris\": [\"http://localhost:8082/callback\"],\r\n  \"scope\": \"user:read profile\",\r\n  \"grant_types\": [\"authorization_code\", \"refresh_token\"],\r\n  \"post_logout_redirect_uri\": \"http://localhost:8082/logout\",\r\n  \"client_authentication_method\": \"client_secret_basic\",\r\n  \"require_authorization_consent\": false\r\n//   \"require_proof_key\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8084/connect/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"connect",
+						"register"
+					],
+					"query": [
+						{
+							"key": "prompt",
+							"value": "none",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "null",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"Grant_Mitchell\",\r\n    \"password\": \"HappyMeal\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8084/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"logout"
+					],
+					"query": [
+						{
+							"key": "JSESSIONID",
+							"value": "43311605CDD131282C3EFD68D8F4B7FD; Path=/; HttpOnly",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "null",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8084/login?emailOrUsername=Grant_Mitchell&password=HappyMeal",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"login"
+					],
+					"query": [
+						{
+							"key": "emailOrUsername",
+							"value": "Grant_Mitchell"
+						},
+						{
+							"key": "JSESSIONID",
+							"value": "43311605CDD131282C3EFD68D8F4B7FD; Path=/; HttpOnly",
+							"disabled": true
+						},
+						{
+							"key": "password",
+							"value": "HappyMeal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Authorize",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "u3zzBU6XFg2_kd_pHw1-QJsdsEM6HzZRTFBA7UiGvUmjMjg6yzAC_Fhu-RVRGIdv",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "developer_client_hash",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Origin",
+						"value": "http://localhost:8082",
+						"type": "text"
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8084/oauth2/authorize?response_type=code&client_id=nO4mKQzBBMK8V62-N3uKjhEJhD_H2_2otqBPK3sDmFg&scope=user:read profile&code_challenge=clrMtajkbRm8Pzp2NtCGCoVHD6RQvn8Paox1cnVnZf0&code_challenge_method=S256&redirect_uri=http://localhost:8082/callback",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"oauth2",
+						"authorize"
+					],
+					"query": [
+						{
+							"key": "response_type",
+							"value": "code"
+						},
+						{
+							"key": "client_id",
+							"value": "nO4mKQzBBMK8V62-N3uKjhEJhD_H2_2otqBPK3sDmFg"
+						},
+						{
+							"key": "scope",
+							"value": "user:read profile"
+						},
+						{
+							"key": "state",
+							"value": "xcoivjuywkdkhvusuye3kch",
+							"disabled": true
+						},
+						{
+							"key": "code_challenge",
+							"value": "clrMtajkbRm8Pzp2NtCGCoVHD6RQvn8Paox1cnVnZf0"
+						},
+						{
+							"key": "code_challenge_method",
+							"value": "S256"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8082/callback"
+						},
+						{
+							"key": "require_authorization_consent",
+							"value": "false",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client Token Request",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8082/callback",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "60k60leRGTCdEn9HYoqSZlx33dyEL8HiubSZopmeOoo",
+							"type": "text"
+						},
+						{
+							"key": "code_verifier",
+							"value": "Happy",
+							"type": "text"
+						},
+						{
+							"key": "code",
+							"value": "un4qzm2cyJMKvb4Ql_CTO94G2LwBPv-Zv0ws7zHVln6-LhAdoN4TH0MXAcu0ps1IxiXRzgEuhCRF1BB0ljDWcicqhSbT_CeiNcyvpQnLB_qfnX-s20QlrAkU99RQWo-t",
+							"type": "text"
+						},
+						{
+							"key": "state",
+							"value": "xcoivjuywkdkhvusuye3kch",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8084/oauth2/token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Revoke Token",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token",
+							"value": "sometoken",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8084/oauth2/revoke",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"oauth2",
+						"revoke"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token Introspection",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token",
+							"value": "sometoken",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8084/oauth2/introspect",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"oauth2",
+						"introspect"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8084/oauth2/authorize",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8084/oauth2/authorize",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"oauth2",
+						"authorize"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Test Authenticated",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8084/test-authenticated",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"test-authenticated"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

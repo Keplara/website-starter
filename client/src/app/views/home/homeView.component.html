@@ -1,0 +1,20 @@
+<main class="home-view">
+    <overlay [imageUrl]="'../../../assets/main-background-image.jpg'" [backgroundImagePosition]="'right'"></overlay>
+    <overlay [darkness]="'light'"></overlay>
+    <div [ngStyle]="{'top': '128px'}">
+        <div style="margin: 10vh auto; width: 90%;">
+            <h2>Find out what's in your food today!</h2>
+            <box class="form-container-home" [isTransparent]="true" [cStyles]="'border-radius: 15px; min-height: 250px; max-width: 600px; width: 100%;'">
+                <div class="vertical-list" style="display: block; width: 100%;">
+                    <p>Search by:</p>
+                    <p>* Barcode</p>
+                    <p>* Product Name</p>
+                    <p>* Brand</p>
+                </div>
+
+                <!-- Change to dialog -->
+                <button mat-button (click)="openDialog()" style="color: var(--primary-font-color); background-color: var(--primary-500); padding: 10px; margin: 10px;">Search for a product</button>
+            </box>
+        </div>
+    </div>
+</main>

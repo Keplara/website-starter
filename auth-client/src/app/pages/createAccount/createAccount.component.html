@@ -1,0 +1,97 @@
+<form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="account-form">
+    <mat-error>
+        {{errorMessage}}
+    </mat-error>
+    <mat-card>
+        <mat-card-title>Account Creation</mat-card-title>
+        <mat-card-content>
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username" />
+                <mat-error *ngIf="accountForm.get('username')?.hasError('required')">
+                    Username is required.
+                </mat-error>
+            </mat-form-field>
+          
+
+            <div formGroupName="emailGroup">
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Email Address</mat-label>
+                    <input matInput formControlName="email" type="email" />
+                    <mat-error *ngIf="emailGroup.get('email')?.hasError('required')">
+                        Email is required.
+                    </mat-error>
+                    <mat-error *ngIf="emailGroup.get('email')?.hasError('email')">
+                        Invalid email address.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Confirm Email Address</mat-label>
+                    <input matInput formControlName="confirmEmail" type="email" />
+                    <mat-error 
+                    *ngIf="
+                    !emailGroup?.get('email')?.hasError('email') &&
+                    !emailGroup?.get('confirmEmail')?.hasError('email') &&
+                    emailGroup?.hasError('emailsMismatch') &&
+                    emailGroup?.get('email')?.dirty &&
+                    emailGroup?.get('confirmEmail')?.dirty
+                  ">
+                    Emails do not match.
+                  </mat-error>
+                </mat-form-field>
+            </div>
+
+            <div formGroupName="passwordGroup">
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Password</mat-label>
+                    <input matInput formControlName="password" type="password" />
+                    <mat-error *ngIf="passwordGroup.get('password')?.hasError('required')">
+                        Password is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Confirm Password</mat-label>
+                    <input matInput formControlName="confirmPassword" type="password" />
+                    <mat-error *ngIf="passwordGroup.hasError('passwordsMismatch')">
+                        Passwords do not match.
+                    </mat-error>
+                    <mat-error 
+                    *ngIf="
+                    emailGroup?.hasError('passwordsMismatch') &&
+                    emailGroup?.get('password')?.dirty &&
+                    emailGroup?.get('confirmPassword')?.dirty
+                  ">
+                    Emails do not match.
+                  </mat-error>
+                </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Phone (Optional)</mat-label>
+                <input matInput formControlName="phone" type="tel" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Age (Optional)</mat-label>
+                <input matInput formControlName="age" type="number" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Reason for Joining (Optional)</mat-label>
+                <textarea matInput formControlName="reasonForJoining"></textarea>
+            </mat-form-field>
+        </mat-card-content>
+        <mat-card-actions style="justify-content: center; flex-wrap: wrap; padding-bottom: 20px;">
+            <button type="button" class="btn btn-primary" style="display: block; width:80%;" type="submit"
+                [disabled]="accountForm.invalid">
+                Create Account
+            </button>
+            <button type="button" class="btn" style="margin-top: 10px; background: #bfbfbf; display: block;  width:80%;"
+                (click)="routeToLogin()">Login</button>
+
+        </mat-card-actions>
+    </mat-card>
+</form>

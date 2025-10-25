@@ -1,0 +1,23 @@
+/* You can add global styles to this file, and also import other style files */
+html, body {
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+button:hover {
+    background-color: hsla(57, 22%, 84%, 0.781) !important; /* Slightly adjusted hue */
+    transform: scale(1.05) !important; /* Optional: Adds a slight zoom effect */
+}
+
+button:disabled {
+    background-color: #ccc !important; /* Gray for disabled state */
+    color: #666 !important; /* Dull text color */
+    cursor: not-allowed !important; /* Shows a 'not-allowed' cursor */
+    transform: none !important; /* Prevent hover scaling */
+    opacity: 0.6 !important; /* Subtle transparency to indicate inactivity */
+}
