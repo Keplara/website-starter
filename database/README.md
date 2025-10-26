@@ -105,10 +105,6 @@ net:
     mode: requireTLS
     certificateKeyFile: /etc/ssl/mongodb/mongodb.pem
     allowConnectionsWithoutCertificates: true
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 11d2686918dc941a486d373d79e85f7773e21255
     # Note: AllowInvalidCertificates is not a standard mongod option; avoid it in production.
 ```
 
@@ -146,6 +142,29 @@ This repository contains helper scripts and configuration for running MongoDB in
 ---
 If you want, I can also: add a sample `.env.example`, validate `docker-compose.yml`, or add a short troubleshooting section tailored to errors you see. Tell me which you'd like next.
 
+<<<<<<< HEAD
+## Create TLS Cert
+#### Certs on windows will need to be LF not CRLF
+
+### Create key
+mkdir certs \
+openssl genrsa -out certs/ca.key 4096
+
+# Create CA certificate (self-signed) Note: use powershell if on windows
+openssl req -x509 -new -nodes -key certs/ca.key -sha256 -days 365 -out certs/ca.pem -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=LocalTestCA"
+
+# Generate server private key
+openssl genrsa -out certs/mongodb.key 4096
+
+# Generate a Certificate Signing Request (CSR) Note: use powershell if on windows
+openssl req -new -key certs/mongodb.key -out certs/mongodb.csr -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=localhost"
+
+# Sign the server CSR with your CA Note: use powershell if on windows
+openssl x509 -req -in certs/mongodb.csr -CA certs/ca.pem -CAkey certs/ca.key -CAcreateserial -out certs/mongodb.crt -days 365 -sha256
+
+# Combine the private key and signed certificate
+cat certs/mongodb.key certs/mongodb.crt > certs/mongodb.pem
+=======
 <<<<<<< HEAD
 
 
@@ -231,3 +250,4 @@ keytool -importcert \
     AllowInvalidCertificates: true
 >>>>>>> 047533d2310d240cda3111ee3bf9fefc34944842
 >>>>>>> 11d2686918dc941a486d373d79e85f7773e21255
+>>>>>>> d7de7d1670cea167d0567af0f611cf84c70ff832

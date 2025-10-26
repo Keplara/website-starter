@@ -1,4 +1,5 @@
 .env
-*.pem
+# *.pem
 mongo-data
 logs
+certs/*
