@@ -15,13 +15,6 @@ fi
 echo "✅ Starting Redis with user: ${REDIS_USER}"
 echo "✅ Starting Redis with password: [HIDDEN]"
 
-
-# REGION="${AWS_REGION:-us-east-1}"
-
-# Get Redis credentials from AWS Secrets Manager (only if not set)
-# ="${REDIS_USER:-$(aws secretsmanager get-secret-value --secret-id redis-secrets --region "$REGION" --query SecretString --output text | jq -r .username)}"
-# REDIS_PASSWORD="${REDIS_PASSWORD:-$(aws secretsmanager get-secret-value --secret-id redis-secrets --region "$REGION" --query SecretString --output text | jq -r .password)}"
-
 CONF_FILE="/usr/local/etc/redis/redis.conf"
 mkdir -p "$(dirname "$CONF_FILE")"
 

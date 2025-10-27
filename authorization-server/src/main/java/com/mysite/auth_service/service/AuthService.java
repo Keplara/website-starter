@@ -2,10 +2,13 @@ package com.mysite.auth_service.service;
 
 import org.springframework.stereotype.Service;
 
+import com.mysite.auth_service.model.mongo.TestMongoRecord;
 import com.mysite.auth_service.model.mongo.User;
+import com.mysite.auth_service.repository.TestRecordsRepository;
 import com.mysite.auth_service.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -17,29 +20,44 @@ public class AuthService {
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final TestRecordsRepository testRecordsRepository;
 
-  public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+  public AuthService(UserRepository userRepository,
+      TestRecordsRepository testRecordsRepository,
+      PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
+    this.testRecordsRepository = testRecordsRepository;
   }
-public Boolean createAdminUser(String username, String emailAddress, String password){
-  String hashedPassword = passwordEncoder.encode(password);
-  Collection<GrantedAuthority> authorities = List.of(
-      new SimpleGrantedAuthority("ROLE_USER"),
-      new SimpleGrantedAuthority("ROLE_ADMIN"),
-      new SimpleGrantedAuthority("SCOPE_user.update"),
-      new SimpleGrantedAuthority("SCOPE_user.read"),
-      new SimpleGrantedAuthority("SCOPE_user.create"),
-      new SimpleGrantedAuthority("SCOPE_user.delete"),
-      new SimpleGrantedAuthority("SCOPE_product.read"),
-      new SimpleGrantedAuthority("SCOPE_product.create"),
-      new SimpleGrantedAuthority("SCOPE_product.delete"),
-      new SimpleGrantedAuthority("SCOPE_product.update"));
 
-  User user = new User(username, emailAddress, hashedPassword, authorities);
-  userRepository.save(user);
-  return true;
-}
+  public Boolean saveMongoTestRecord(TestMongoRecord record) {
+    Optional<TestMongoRecord> existingRecord = testRecordsRepository.findById(record.getId());
+    if (existingRecord.isPresent()) {
+      return false; // record exists
+    }
+    testRecordsRepository.save(record);
+    return true;
+  }
+
+  public Boolean createAdminUser(String username, String emailAddress, String password) {
+    String hashedPassword = passwordEncoder.encode(password);
+    Collection<GrantedAuthority> authorities = List.of(
+        new SimpleGrantedAuthority("ROLE_USER"),
+        new SimpleGrantedAuthority("ROLE_ADMIN"),
+        new SimpleGrantedAuthority("SCOPE_user.update"),
+        new SimpleGrantedAuthority("SCOPE_user.read"),
+        new SimpleGrantedAuthority("SCOPE_user.create"),
+        new SimpleGrantedAuthority("SCOPE_user.delete"),
+        new SimpleGrantedAuthority("SCOPE_product.read"),
+        new SimpleGrantedAuthority("SCOPE_product.create"),
+        new SimpleGrantedAuthority("SCOPE_product.delete"),
+        new SimpleGrantedAuthority("SCOPE_product.update"));
+
+    User user = new User(username, emailAddress, hashedPassword, authorities);
+    userRepository.save(user);
+    return true;
+  }
+
   public Boolean createUser(String username, String emailAddress, String password) {
     String hashedPassword = passwordEncoder.encode(password);
     Collection<GrantedAuthority> authorities = List.of(
@@ -52,7 +70,7 @@ public Boolean createAdminUser(String username, String emailAddress, String pass
     return true;
   }
 
-  public User updateUserPassword(String emailOrUsername, String newPassword){
+  public User updateUserPassword(String emailOrUsername, String newPassword) {
     String hashedPassword = passwordEncoder.encode(newPassword);
     userRepository.updatePassword(emailOrUsername, hashedPassword);
     return getUser(emailOrUsername);

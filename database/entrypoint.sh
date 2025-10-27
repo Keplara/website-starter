@@ -2,7 +2,7 @@
 set -e
 
 echo "Starting MongoDB with TLS enabled..."
-echo "MONGO_USER: $MONGO_USER"
+echo "MONGO_USER: $MONGO_USERNAME"
 echo "MONGO_PASSWORD: $MONGO_PASSWORD"
 
 # Ensure the mongo-init.js file is present at the right location

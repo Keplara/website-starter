@@ -8,11 +8,11 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 COPY certs/mongodb.pem /etc/ssl/mongodb/mongodb.pem
-COPY certs/ca.pem /etc/ssl/mongodb/ca.pem
+COPY certs/mongo-ca.pem /etc/ssl/mongodb/mongo-ca.pem
 
-RUN chown mongodb:mongodb /etc/ssl/mongodb/mongodb.pem /etc/ssl/mongodb/ca.pem
+RUN chown mongodb:mongodb /etc/ssl/mongodb/mongodb.pem /etc/ssl/mongodb/mongo-ca.pem
 RUN chmod 600 /etc/ssl/mongodb/mongodb.pem
-RUN chmod 600 /etc/ssl/mongodb/ca.pem
+RUN chmod 600 /etc/ssl/mongodb/mongo-ca.pem
 
 COPY mongo-init.js /docker-entrypoint-initdb.d/mongo-init.js
 

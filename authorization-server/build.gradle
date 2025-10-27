@@ -34,17 +34,11 @@ repositories {
 tasks.withType(JavaExec).configureEach {
     environment 'REDIS_USER', System.getenv('REDIS_USER') ?: 'Supervisor'
 		environment 'REDIS_HOST', System.getenv('REDIS_HOST') ?: 'host.docker.internal'
+		environment 'REDIS_PORT', System.getenv('REDIS_PORT') ?: '6379'
     environment 'REDIS_PASSWORD', System.getenv('REDIS_PASSWORD') ?: 'Supervisor'
     environment 'MONGO_USERNAME', System.getenv('MONGO_USERNAME') ?: 'Supervisor'
     environment 'MONGO_PASSWORD', System.getenv('MONGO_PASSWORD') ?: 'Supervisor'
-		
-		environment 'WEBSERVER_KEY_STORE_PASSWORD', System.getenv('WEBSERVER_KEY_STORE_PASSWORD') ?: 'Supervisor'
-    environment 'WEBSERVER_TRUST_STORE_PASSWORD', System.getenv('WEBSERVER_TRUST_STORE_PASSWORD') ?: 'Supervisor'
-    environment 'REDIS_KEY_STORE_PASSWORD', System.getenv('REDIS_KEY_STORE_PASSWORD') ?: 'Supervisor'
-    environment 'REDIS_TRUST_STORE_PASSWORD', System.getenv('REDIS_TRUST_STORE_PASSWORD') ?: 'Supervisor'
-    environment 'MONGO_KEY_STORE_PASSWORD', System.getenv('MONGO_KEY_STORE_PASSWORD') ?: 'Supervisor'
-    environment 'MONGO_TRUST_STORE_PASSWORD', System.getenv('MONGO_TRUST_STORE_PASSWORD') ?: 'Supervisor'
-
+    environment 'TRUSTSTORE_PASSWORD', System.getenv('MONGO_TRUST_STORE_PASSWORD') ?: 'Supervisor'
     environment 'MONGO_DATABASE', System.getenv('MONGO_DATABASE') ?: 'development'
     environment 'MONGO_PORT', System.getenv('MONGO_PORT') ?: '27020'
 		environment 'MONGO_HOST', System.getenv('MONGO_HOST') ?: 'host.docker.internal'

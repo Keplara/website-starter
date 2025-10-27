@@ -27,33 +27,33 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 
 import org.springframework.beans.factory.annotation.Value;
 
-
-
 @Configuration
 @EnableCaching
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds =60)
+@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 60)
 public class RedisConfig {
 
     @Value("${redis.username}")
-    String username = "Grant";
+    String username = "Supervisor";
 
     @Value("${redis.password}")
-    String password = "Grant";
+    String password = "Supervisor";
 
     @Value("${redis.host}")
     String host = "host.docker.internal";
 
+    @Value("${redis.port}")
+    Integer port = 6379;
+
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(host); 
-        config.setPort(6379);
-		config.setDatabase(0);
-		config.setUsername(username);
+        config.setHostName(host);
+        config.setPort(port);
+        config.setDatabase(0);
+        config.setUsername(username);
         config.setPassword(password);
         return new JedisConnectionFactory(config);
     }
-    
 
     @Bean
     public RedisTemplate<String, RegisteredClient> redisTemplate(JedisConnectionFactory jedisConnectionFactory) {
@@ -62,7 +62,7 @@ public class RedisConfig {
         template.setKeySerializer(new StringRedisSerializer());
         return template;
     }
-	
+
     @Bean
     public RedisSessionExpirationStore redisSessionExpirationStore(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
@@ -74,18 +74,21 @@ public class RedisConfig {
     }
 
     // @Bean
-    // public RedisSessionRepository redisSessionRepository(RedisTemplate<String, Object> redisTemplate) {
-    //     RedisSessionRepository repository = new RedisSessionRepository(redisTemplate);
-    //     repository.setDefaultMaxInactiveInterval(Duration.ofMinutes(1));
-    //     return repository;
+    // public RedisSessionRepository redisSessionRepository(RedisTemplate<String,
+    // Object> redisTemplate) {
+    // RedisSessionRepository repository = new
+    // RedisSessionRepository(redisTemplate);
+    // repository.setDefaultMaxInactiveInterval(Duration.ofMinutes(1));
+    // return repository;
     // }
 
-	// @Bean
-	// public RedisCacheManagerBuilderCustomizer myRedisCacheManagerBuilderCustomizer() {
-	// 	return (builder) -> builder
-    //     .withCacheConfiguration("spring:session:sessions:*",
-    //          RedisCacheConfiguration
-    //             .defaultCacheConfig()
-    //                 .entryTtl(Duration.ofMinutes(1)));
-	// }
+    // @Bean
+    // public RedisCacheManagerBuilderCustomizer
+    // myRedisCacheManagerBuilderCustomizer() {
+    // return (builder) -> builder
+    // .withCacheConfiguration("spring:session:sessions:*",
+    // RedisCacheConfiguration
+    // .defaultCacheConfig()
+    // .entryTtl(Duration.ofMinutes(1)));
+    // }
 }

@@ -2,4 +2,12 @@
 # *.pem
 mongo-data
 logs
+<<<<<<< HEAD
 certs/*
+=======
+*.key
+*.cnf
+*.csr
+*.crt
+*.srl
+>>>>>>> 7c36a08 (Update: KOSW-17)

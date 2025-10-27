@@ -53,7 +53,7 @@ import java.security.KeyPair;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Configuration
 public class OAuth2SecurityConfig {
-	
+
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
@@ -67,86 +67,84 @@ public class OAuth2SecurityConfig {
 	}
 
 	@Bean
-	SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, CustomUserDetailsService cs) throws Exception {
-		OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer.authorizationServer();
+	SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, CustomUserDetailsService cs)
+			throws Exception {
+		OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
+				.authorizationServer();
 		http
-			.cors(Customizer.withDefaults())
-			.csrf(crsf->crsf.disable())
-			.authorizeHttpRequests((req) ->
-				req
-				.requestMatchers("/test-unauthenticated").permitAll()
-				.anyRequest().authenticated()
-				)
-			.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-			.with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
-				.authorizationEndpoint(authorizationEndpoint->{
-					authorizationEndpoint
-                        .authenticationProviders(configureAuthenticationValidator(cs));
-					})
-					.oidc((oidc) -> oidc
-					.clientRegistrationEndpoint((clientRegistrationEndpoint) -> oidc
-							.clientRegistrationEndpoint(Customizer.withDefaults()))))
-			.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()))
-			.exceptionHandling((exceptions) -> {
-				exceptions.accessDeniedHandler((request, response, accessDeniedException) -> {
-					System.out.println("Access Denied.");
-					response.setStatus(HttpServletResponse.SC_OK);
-					response.getWriter().write("Access Denied.");
-					response.getWriter().flush();
+				.cors(Customizer.withDefaults())
+				.csrf(crsf -> crsf.disable())
+				.authorizeHttpRequests((req) -> req
+						.requestMatchers("/test-unauthenticated").permitAll()
+						.anyRequest().authenticated())
+				.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+				.with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
+						.authorizationEndpoint(authorizationEndpoint -> {
+							authorizationEndpoint
+									.authenticationProviders(configureAuthenticationValidator(cs));
+						})
+						.oidc((oidc) -> oidc
+								.clientRegistrationEndpoint((clientRegistrationEndpoint) -> oidc
+										.clientRegistrationEndpoint(Customizer.withDefaults()))))
+				.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()))
+				.exceptionHandling((exceptions) -> {
+					exceptions.accessDeniedHandler((request, response, accessDeniedException) -> {
+						System.out.println("Access Denied.");
+						response.setStatus(HttpServletResponse.SC_OK);
+						response.getWriter().write("Access Denied.");
+						response.getWriter().flush();
+					});
+					exceptions.defaultAuthenticationEntryPointFor(
+							new LoginUrlAuthenticationEntryPoint("http://localhost:8082/login"),
+							new MediaTypeRequestMatcher(MediaType.TEXT_HTML));
 				});
-				exceptions.defaultAuthenticationEntryPointFor(
-						new LoginUrlAuthenticationEntryPoint("http://localhost:8082/login"),
-						new MediaTypeRequestMatcher(MediaType.TEXT_HTML));
-			});
 		return http.build();
 	}
 
 	private Consumer<List<AuthenticationProvider>> configureAuthenticationValidator(CustomUserDetailsService cs) {
-	return (authenticationProviders) ->
-		authenticationProviders.forEach((authenticationProvider) -> {
+		return (authenticationProviders) -> authenticationProviders.forEach((authenticationProvider) -> {
 			if (authenticationProvider instanceof OAuth2AuthorizationCodeRequestAuthenticationProvider) {
 				Consumer<OAuth2AuthorizationCodeRequestAuthenticationContext> authenticationValidator =
-					// Override default redirect_uri validator
-					new CustomRedirectUriValidator()
-						// Reuse default scope validator
-						.andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR)
-						.andThen(new CustomScopeValidator(cs));
+						// Override default redirect_uri validator
+						new CustomRedirectUriValidator()
+								// Reuse default scope validator
+								.andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR)
+								.andThen(new CustomScopeValidator(cs));
 
 				((OAuth2AuthorizationCodeRequestAuthenticationProvider) authenticationProvider)
-					.setAuthenticationValidator(authenticationValidator);
+						.setAuthenticationValidator(authenticationValidator);
 			}
 		});
 	}
 
-  @Bean
-	OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {	
-    return context -> {
-        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-            context.getClaims().claims(claims -> {
-                
-                // Extract roles (ROLE_ prefixed authorities)
-                Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
-                        .stream()
-                        .filter(auth -> auth.startsWith("ROLE_"))
-                        .map(auth -> auth.replaceFirst("^ROLE_", ""))
-                        .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-                
-                // Extract all user scopes (SCOPE_ prefixed authorities)
-                Set<String> userScopes = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
-                        .stream()
-                        .filter(auth -> auth.startsWith("SCOPE_"))
-                        .map(auth -> auth.replaceFirst("^SCOPE_", ""))
-                        .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-                
-                // Put claims directly, no filtering against requested scopes
-                claims.put("roles", roles); 
-                claims.put("authorities", userScopes);
-            });
-        }
-    };
+	@Bean
+	OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
+		return context -> {
+			if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+				context.getClaims().claims(claims -> {
+
+					// Extract roles (ROLE_ prefixed authorities)
+					Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
+							.stream()
+							.filter(auth -> auth.startsWith("ROLE_"))
+							.map(auth -> auth.replaceFirst("^ROLE_", ""))
+							.collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+
+					// Extract all user scopes (SCOPE_ prefixed authorities)
+					Set<String> userScopes = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
+							.stream()
+							.filter(auth -> auth.startsWith("SCOPE_"))
+							.map(auth -> auth.replaceFirst("^SCOPE_", ""))
+							.collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+
+					// Put claims directly, no filtering against requested scopes
+					claims.put("roles", roles);
+					claims.put("authorities", userScopes);
+				});
+			}
+		};
 	}
 
-	
 	private static KeyPair generateRsaKey() {
 		KeyPair keyPair;
 		try {
