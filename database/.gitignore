@@ -1,5 +1,9 @@
 .env
-# *.pem
+*.pem
 mongo-data
 logs
-certs/*
+*.key
+*.cnf
+*.csr
+*.crt
+*.srl

@@ -8,12 +8,23 @@ services:
     environment:
       REDIS_USER: ${REDIS_USER}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-    container_name: redis-dev
+    container_name: redis-development
     ports:
       - "6379:6379"
     volumes:
       - redis-development-data:/data
-
+  redis-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-staging
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis-staging-data:/data
   redis-production:
     build:
       context: .
@@ -21,7 +32,7 @@ services:
     environment:
       REDIS_USER: ${REDIS_USER}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-    container_name: redis-prod
+    container_name: redis-production
     ports:
       - "6380:6379"
     volumes:
@@ -30,3 +41,4 @@ services:
 volumes:
   redis-development-data:
   redis-production-data:
+  redis-staging-data:
