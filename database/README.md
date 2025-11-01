@@ -142,6 +142,33 @@ This repository contains helper scripts and configuration for running MongoDB in
 ---
 If you want, I can also: add a sample `.env.example`, validate `docker-compose.yml`, or add a short troubleshooting section tailored to errors you see. Tell me which you'd like next.
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+## Create TLS Cert
+#### Certs on windows will need to be LF not CRLF
+
+### Create key
+mkdir certs \
+openssl genrsa -out certs/ca.key 4096
+
+# Create CA certificate (self-signed) Note: use powershell if on windows
+openssl req -x509 -new -nodes -key certs/ca.key -sha256 -days 365 -out certs/ca.pem -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=LocalTestCA"
+
+# Generate server private key
+openssl genrsa -out certs/mongodb.key 4096
+
+# Generate a Certificate Signing Request (CSR) Note: use powershell if on windows
+openssl req -new -key certs/mongodb.key -out certs/mongodb.csr -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=localhost"
+
+# Sign the server CSR with your CA Note: use powershell if on windows
+openssl x509 -req -in certs/mongodb.csr -CA certs/ca.pem -CAkey certs/ca.key -CAcreateserial -out certs/mongodb.crt -days 365 -sha256
+
+# Combine the private key and signed certificate
+cat certs/mongodb.key certs/mongodb.crt > certs/mongodb.pem
+=======
+<<<<<<< HEAD
+>>>>>>> 4cea47c04cdc5c3f679b163be8f293a99a153f21
 
 # Create new file certs/mongo-ext.cnf 
 ```shell
@@ -192,6 +219,7 @@ openssl genrsa -out certs/mongodb.key 4096
 openssl req -new -key certs/mongodb.key -out certs/mongodb.csr -config certs/mongo-ext.cnf
 ```
 
+<<<<<<< HEAD
 # Sign the server CSR with your CA Note: use powershell if on windows
 ```shell
 openssl x509 -req -in certs/mongodb.csr -CA certs/ca.pem -CAkey certs/ca.key -CAcreateserial -out certs/mongodb.crt -days 365 -sha256 -extfile certs/mongo-ext.cnf
@@ -200,3 +228,49 @@ openssl x509 -req -in certs/mongodb.csr -CA certs/ca.pem -CAkey certs/ca.key -CA
 ```shell
 cat certs/mongodb.key certs/mongodb.crt > certs/mongodb.pem
 ```
+=======
+# Sign server CSR with CA
+openssl x509 -req -in mongodb.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out mongodb.crt -days 365 -sha256
+
+# Combine server key + cert for Mongo
+cat mongodb.key mongodb.crt > mongodb.pem
+
+## 3️⃣ Create Client certificate for your Spring Boot app
+# Generate client private key
+openssl genrsa -out client.key 4096
+
+# Generate client CSR
+openssl req -new -key client.key -out client.csr -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=mongo-client"
+
+# Sign client CSR with the same CA
+openssl x509 -req -in client.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client.crt -days 365 -sha256
+
+# Optional: combine client cert + key for PKCS12
+openssl pkcs12 -export \
+  -in client.crt \
+  -inkey client.key \
+  -certfile ca.pem \
+  -out keystore.p12 \
+  -name mongo-client \
+  -password pass:testpassword123
+
+# Convert to JKS (if needed)
+keytool -importkeystore \
+  -destkeystore keystore.jks \
+  -deststorepass testpassword123 \
+  -srckeystore keystore.p12 \
+  -srcstoretype PKCS12 \
+  -srcstorepass testpassword123 \
+  -alias mongo-client
+
+## 4️⃣ Create Truststore for verifying Mongo server
+keytool -importcert \
+  -file ca.pem \
+  -alias mongoCA \
+  -keystore truststore.jks \
+  -storepass testpassword123 \
+  -noprompt
+=======
+    AllowInvalidCertificates: true
+>>>>>>> 047533d2310d240cda3111ee3bf9fefc34944842
+
