@@ -201,7 +201,6 @@ openssl x509 -req -in certs/mongodb.csr \
 cat certs/mongodb.key certs/mongodb.crt > certs/mongodb.pem
 ```
 
-
 # Optional: combine client cert + key for PKCS12
 openssl pkcs12 -export \
   -in client.crt \
@@ -227,5 +226,4 @@ keytool -importcert \
   -keystore truststore.jks \
   -storepass testpassword123 \
   -noprompt
-
 
