@@ -2,8 +2,4 @@
 *.pem
 mongo-data
 logs
-*.key
-*.cnf
-*.csr
-*.crt
-*.srl
+certs/*

@@ -1,21 +1,30 @@
 version: '3.8'
 
 services:
-  app:
-    container_name: authorization-server
+  auth-staging:
+    container_name: authorization-server-staging
     build:
       context: .
-      dockerfile: Dockerfile.production
+      dockerfile: Dockerfile.staging
     ports:
       - "8084:8084"
     env_file:
       - ./.env
-  app-development:
+  auth-production:
+    container_name: authorization-server-production
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    ports:
+      - "8087:8084"
+    env_file:
+      - ./.env
+  auth-development:
     container_name: authorization-server-development
     build:
       context: .
       dockerfile: Dockerfile.development
     ports:
-      - "8084:8084"
+      - "8083:8084"
     env_file:
       - ./.env

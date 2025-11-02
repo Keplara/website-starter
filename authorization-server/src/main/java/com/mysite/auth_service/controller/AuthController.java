@@ -9,6 +9,7 @@ import com.mysite.auth_service.configuration.exceptions.AuthApiException;
 import com.mysite.auth_service.configuration.responseObjects.BasicResponse;
 import com.mysite.auth_service.model.jwt.AccountToken;
 import com.mysite.auth_service.model.jwt.ResetPasswordToken;
+import com.mysite.auth_service.model.mongo.TestMongoRecord;
 import com.mysite.auth_service.model.mongo.User;
 import com.mysite.auth_service.model.request.CreateAccountRequest;
 import com.mysite.auth_service.service.AuthService;
@@ -79,6 +80,12 @@ public class AuthController {
 		return new ResponseEntity<String>(ex.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 	// Needs to be refactored
+
+	@PostMapping("/test-mongo-record")
+	public Boolean createMongoRecord(@RequestBody TestMongoRecord record) {
+		// Save the record to MongoDB
+		return authService.saveMongoTestRecord(record);
+	}
 
 	@PostMapping("/create-account")
 	public BasicResponse createAccount(@RequestBody(required = false) CreateAccountRequest accountRequest)

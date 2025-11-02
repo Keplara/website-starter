@@ -1,3 +1,6 @@
+### Certs ###
+certs/*
+
 HELP.md
 .gradle
 build/

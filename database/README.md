@@ -142,36 +142,27 @@ This repository contains helper scripts and configuration for running MongoDB in
 ---
 If you want, I can also: add a sample `.env.example`, validate `docker-compose.yml`, or add a short troubleshooting section tailored to errors you see. Tell me which you'd like next.
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
 ## Create TLS Cert
 #### Certs on windows will need to be LF not CRLF
 
-### Create key
+```shell
+
+### Generate CA private key
 mkdir certs \
-openssl genrsa -out certs/ca.key 4096
+openssl genrsa -out certs/mongo-ca.key 4096
 
-# Create CA certificate (self-signed) Note: use powershell if on windows
-openssl req -x509 -new -nodes -key certs/ca.key -sha256 -days 365 -out certs/ca.pem -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=LocalTestCA"
+# Generate self-signed CA certificate
+### Bash
+openssl req -x509 -new -nodes -key certs/mongo-ca.key \
+  -sha256 -days 365 \
+  -out certs/mongo-ca.pem \
+  -subj "/C=US/O=MySite/OU=IT/CN=LocalTestCA"
 
-# Generate server private key
-openssl genrsa -out certs/mongodb.key 4096
+### powershell
+openssl req -x509 -new -nodes -key certs/mongo-ca.key -sha256 -days 365 -out certs/mongo-ca.pem  -subj "/C=US/O=MySite/OU=IT/CN=LocalTestCA"   
 
-# Generate a Certificate Signing Request (CSR) Note: use powershell if on windows
-openssl req -new -key certs/mongodb.key -out certs/mongodb.csr -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=localhost"
-
-# Sign the server CSR with your CA Note: use powershell if on windows
-openssl x509 -req -in certs/mongodb.csr -CA certs/ca.pem -CAkey certs/ca.key -CAcreateserial -out certs/mongodb.crt -days 365 -sha256
-
-# Combine the private key and signed certificate
-cat certs/mongodb.key certs/mongodb.crt > certs/mongodb.pem
-=======
-<<<<<<< HEAD
->>>>>>> 4cea47c04cdc5c3f679b163be8f293a99a153f21
 
 # Create new file certs/mongo-ext.cnf 
-```shell
 cat <<EOF > certs/mongo-ext.cnf
 [ req ]
 distinguished_name = req_distinguished_name
@@ -193,57 +184,22 @@ DNS.1 = localhost
 DNS.2 = host.docker.internal
 IP.1 = 127.0.0.1
 EOF
-```
-
-## Create TLS Cert
-#### Certs on windows will need to be LF not CRLF
-
-### Create key
-```shell
-mkdir certs && \
-openssl genrsa -out certs/ca.key 4096
-```
-
-# Create CA certificate (self-signed) Note: use powershell if on windows
-```shell
-openssl req -x509 -new -nodes -key certs/ca.key -sha256 -days 365 -out certs/ca.pem -subj "/C=US/O=MySite/OU=IT/CN=localhost"
-```
 
 # Generate server private key
-```shell
 openssl genrsa -out certs/mongodb.key 4096
-```
 
-# Generate a Certificate Signing Request (CSR) Note: use powershell if on windows
-```shell
+# Generate CSR using CNF for SANs
 openssl req -new -key certs/mongodb.key -out certs/mongodb.csr -config certs/mongo-ext.cnf
-```
 
-<<<<<<< HEAD
-# Sign the server CSR with your CA Note: use powershell if on windows
-```shell
-openssl x509 -req -in certs/mongodb.csr -CA certs/ca.pem -CAkey certs/ca.key -CAcreateserial -out certs/mongodb.crt -days 365 -sha256 -extfile certs/mongo-ext.cnf
-```
-# Combine the private key and signed certificate
-```shell
+# Sign server CSR with CA and include SANs
+openssl x509 -req -in certs/mongodb.csr \
+  -CA certs/mongo-ca.pem -CAkey certs/mongo-ca.key -CAcreateserial \
+  -out certs/mongodb.crt -days 365 -sha256 \
+  -extfile certs/mongo-ext.cnf \
+  -extensions v3_req
+
 cat certs/mongodb.key certs/mongodb.crt > certs/mongodb.pem
 ```
-=======
-# Sign server CSR with CA
-openssl x509 -req -in mongodb.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out mongodb.crt -days 365 -sha256
-
-# Combine server key + cert for Mongo
-cat mongodb.key mongodb.crt > mongodb.pem
-
-## 3️⃣ Create Client certificate for your Spring Boot app
-# Generate client private key
-openssl genrsa -out client.key 4096
-
-# Generate client CSR
-openssl req -new -key client.key -out client.csr -subj "/C=US/ST=AZ/L=Phoenix/O=LocalTest/OU=Dev/CN=mongo-client"
-
-# Sign client CSR with the same CA
-openssl x509 -req -in client.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client.crt -days 365 -sha256
 
 # Optional: combine client cert + key for PKCS12
 openssl pkcs12 -export \
@@ -270,7 +226,4 @@ keytool -importcert \
   -keystore truststore.jks \
   -storepass testpassword123 \
   -noprompt
-=======
-    AllowInvalidCertificates: true
->>>>>>> 047533d2310d240cda3111ee3bf9fefc34944842
 

@@ -38,8 +38,8 @@ public class SecurityConfig {
 		return new CustomUserDetailsService(userRepository);
 	}
 
-    @Bean
-    PasswordEncoder customPasswordEncoder() {
+	@Bean
+	PasswordEncoder customPasswordEncoder() {
 		String idForEncode = "bcrypt";
 		Map<String, PasswordEncoder> encoders = new HashMap<>();
 		encoders.put(idForEncode, new BCryptPasswordEncoder());
@@ -55,20 +55,21 @@ public class SecurityConfig {
 	}
 	// control sessions in the cache
 
-
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AuthenticationManagerBuilder authManager,
 			CustomUserDetailsService userDetailsService, PasswordEncoder sharedPasswordEncoder) throws Exception {
-				// once access token has been given invalidate session on redis 
+		// once access token has been given invalidate session on redis
 		return http
-				.csrf(crsf-> crsf.disable())
+				.csrf(crsf -> crsf.disable())
 				.authorizeHttpRequests((authorize) -> authorize
-				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-				.requestMatchers("/create-account").permitAll()
-				.requestMatchers("/send-test-email").permitAll()
-				.requestMatchers("/error").permitAll()
-				.requestMatchers("/login").permitAll()
-				.anyRequest().authenticated())
+						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						.requestMatchers("/create-account").permitAll()
+						.requestMatchers("/send-test-email").permitAll()
+						.requestMatchers("/test-mongo-record").permitAll()
+
+						.requestMatchers("/error").permitAll()
+						.requestMatchers("/login").permitAll()
+						.anyRequest().authenticated())
 				.formLogin(formLogin -> {
 					formLogin.loginProcessingUrl("/login");
 					formLogin.loginPage("http://localhost:8082/login");
@@ -78,7 +79,7 @@ public class SecurityConfig {
 						System.out.println("Login failed.");
 						response.sendRedirect("http://localhost:8082/login");
 					});
-					
+
 					formLogin.successHandler((request, response, authentication) -> {
 						System.out.println("Login succeeded.");
 						response.setStatus(HttpServletResponse.SC_OK);
@@ -86,7 +87,8 @@ public class SecurityConfig {
 						response.getWriter().flush();
 					});
 				})
-				.sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+				.sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer
+						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 				.logout(logout -> {
 					logout.logoutUrl("/logout");
 					logout.logoutSuccessUrl("http://localhost:8082/login");
