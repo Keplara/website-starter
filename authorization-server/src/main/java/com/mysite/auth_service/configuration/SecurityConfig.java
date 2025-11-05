@@ -64,10 +64,10 @@ public class SecurityConfig {
 				.authorizeHttpRequests((authorize) -> authorize
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/create-account").permitAll()
+						.requestMatchers("/verify-new-account").permitAll()
 						.requestMatchers("/send-test-email").permitAll()
 						.requestMatchers("/test-mongo-record").permitAll()
-
-						.requestMatchers("/error").permitAll()
+						// .requestMatchers("/error").permitAll()
 						.requestMatchers("/login").permitAll()
 						.anyRequest().authenticated())
 				.formLogin(formLogin -> {

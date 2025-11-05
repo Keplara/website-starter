@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "email")
+@ConfigurationProperties(prefix = "local.email")
 public class EmailProperties {
 
     /**
