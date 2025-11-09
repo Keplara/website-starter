@@ -10,19 +10,18 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.data.redis.RedisSessionExpirationStore;
 import org.springframework.session.data.redis.SortedSetRedisSessionExpirationStore;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
-import java.time.Duration;
+import com.mysite.auth_service.model.PendingUser;
 
 import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableCaching
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 60)
+@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 1800)
 public class RedisConfig {
 
     @Value("${redis.username}")
@@ -37,9 +36,6 @@ public class RedisConfig {
     @Value("${redis.port}")
     Integer port = 6379;
 
-    @Value("${local.session.timeout}")
-    Duration sessionExpiration;
-
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
@@ -52,10 +48,35 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, RegisteredClient> redisTemplate(JedisConnectionFactory jedisConnectionFactory) {
+    public RedisTemplate<String, RegisteredClient> redisRegisteredClientTemplate(
+            JedisConnectionFactory jedisConnectionFactory) {
         RedisTemplate<String, RegisteredClient> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
+        template.afterPropertiesSet();
+
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, PendingUser> redisPendingUserTemplate(JedisConnectionFactory jedisConnectionFactory) {
+        RedisTemplate<String, PendingUser> template = new RedisTemplate<>();
+        template.setConnectionFactory(jedisConnectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.afterPropertiesSet();
+
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(JedisConnectionFactory jedisConnectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setConnectionFactory(jedisConnectionFactory);
+        template.afterPropertiesSet();
+
         return template;
     }
 

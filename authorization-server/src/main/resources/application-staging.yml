@@ -24,6 +24,7 @@ spring:
     timeout: 1m
 local:
   companyName: ${COMPANY_NAME}
+  authClientBaseUrl: ${AUTH_CLIENT_BASE_URL}
   jwt:
     secretKey: ${JWT_KEY}
     payloadKey: ${JWT_PAYLOAD_KEY} 

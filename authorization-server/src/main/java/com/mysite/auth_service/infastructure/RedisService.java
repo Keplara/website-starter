@@ -1,6 +1,5 @@
 package com.mysite.auth_service.infastructure;
 
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -124,7 +123,7 @@ public class RedisService {
     redisTemplate.delete(key);
   }
 
-  public void expireResetPasswordToken(String token) {
+  public void expirePasswordResetToken(String token) {
     String key = getPasswordResetKey(token);
     redisTemplate.delete(key);
   }

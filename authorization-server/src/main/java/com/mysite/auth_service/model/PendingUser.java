@@ -1,16 +1,16 @@
 package com.mysite.auth_service.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import lombok.Data;
 
 @Data
-public class PendingUser {
+public class PendingUser implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   private String emailAddress;
   private String username;

@@ -1,30 +1,30 @@
 package com.mysite.auth_service.infastructure;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.Session;
+
+import org.springframework.session.data.redis.RedisSessionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class RedisSessionTrackerService {
 
-  private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+  // private final FindByIndexNameSessionRepository<? extends Session>
+  // sessionRepository;
   private final RedisTemplate<String, Object> redisTemplate;
   private final ValueOperations<String, Object> valueOperations;
   private static final String SESSION_TRACKER_PREFIX = "user:sessions:";
 
+  private RedisSessionRepository sessionRepository;
+
   @Value("${spring.session.timeout}")
   private Duration SESSION_EXPIRATION; // 5 minutes in seconds
 
-  public RedisSessionTrackerService(FindByIndexNameSessionRepository<? extends Session> sessionRepository,
+  public RedisSessionTrackerService(RedisSessionRepository sessionRepository,
       RedisTemplate<String, Object> redisTemplate) {
     this.sessionRepository = sessionRepository;
     this.redisTemplate = redisTemplate;

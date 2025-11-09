@@ -10,9 +10,6 @@ for var in $REQUIRED_ENVS; do
   fi
 done
 
-# Continue with your normal startup here, e.g.
-# exec java -jar app.jar
-
 
 TRUSTSTORE_PATH="/tmp/app-truststore.jks"
 TRUSTSTORE_PASSWORD="${TRUSTSTORE_PASSWORD:-changeit}"

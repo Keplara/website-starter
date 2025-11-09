@@ -29,7 +29,7 @@ public class UserService {
 
   private final SimpleEmailService simpleEmailService;
 
-  @Value("${AUTH_CLIENT_BASE_URL}")
+  @Value("${local.authClientBaseUrl}")
   private String authClientBaseUrl;
 
   @Value("${local.companyName}")
@@ -152,7 +152,7 @@ public class UserService {
    * Password Reset Functionality
    * ===========================
    */
-  public Boolean resetPasswordRequest(String emailOrUsername, String authClientBaseUrl) throws AuthApiException {
+  public Boolean passwordResetRequest(String emailOrUsername, String authClientBaseUrl) throws AuthApiException {
     User existingUser = mongoService.getUser(emailOrUsername);
     if (existingUser == null) {
       throw new AuthApiException(String.format("User does not exist."));
@@ -174,12 +174,12 @@ public class UserService {
     return true;
   }
 
-  public Boolean verifyResetPasswordToken(@RequestParam String token) throws AuthApiException {
+  public Boolean verifyPasswordResetToken(@RequestParam String token) throws AuthApiException {
     String emailAddress = redisService.getStoredPasswordResetUser(token);
     return emailAddress != null;
   }
 
-  public String confirmResetPassword(String token, String newPassword)
+  public String confirmPasswordReset(String token, String newPassword)
       throws AuthApiException, URISyntaxException {
     String emailAddress = redisService.getStoredPasswordResetUser(token);
     if (emailAddress == null) {
@@ -187,7 +187,7 @@ public class UserService {
     }
 
     mongoService.updateUserPassword(emailAddress, newPassword);
-    redisService.expireResetPasswordToken(token);
+    redisService.expirePasswordResetToken(token);
 
     // if user already updated their password make token expire.
     simpleEmailService.sendEmail(emailAddress, "Your password has been updated :)",

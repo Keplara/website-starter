@@ -3,10 +3,24 @@ WORKDIR /app
 COPY . .
 RUN gradle clean build --no-daemon -x test
 
-FROM openjdk:17-alpine
+FROM eclipse-temurin:17-jdk-alpine-3.22
 WORKDIR /app
-RUN apk add --no-cache python3 py3-pip curl && \
-  pip3 install --no-cache-dir awscli
+# RUN apk add --no-cache python3 py3-pip curl && \
+#   pip3 install --no-cache-dir awscli -- convert to linux/amd64
+
+# Install python3, pip, curl, unzip
+RUN apk add --no-cache python3 py3-pip bash curl unzip
+
+# Create virtual environment for awscli
+RUN python3 -m venv /opt/awscli \
+  && /opt/awscli/bin/pip install --no-cache-dir awscli
+
+# Add awscli to PATH
+ENV PATH="/opt/awscli/bin:$PATH"
+
+# Verify installation
+RUN python3 --version \
+  && aws --version
 
 RUN mkdir -p /certs
 ARG CA_PATH

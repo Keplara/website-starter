@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . .
 RUN gradle clean build --no-daemon -x test
 
-FROM openjdk:17-alpine
+FROM openjdk:17-jdk-alpine-3.22
 WORKDIR /app
 RUN apk add --no-cache python3 py3-pip curl && \
   pip3 install --no-cache-dir awscli

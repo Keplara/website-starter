@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AuthController {
 	private final UserService userService;
 
-	@Value("${AUTH_CLIENT_BASE_URL}")
+	@Value("${local.authClientBaseUrl}")
 	private String authClientBaseUrl;
 
 	@Value("${local.companyName}")
@@ -117,11 +117,11 @@ public class AuthController {
 	 * Password Reset Functionality
 	 * ===========================
 	 */
-	@PostMapping("/reset-password/request")
-	public ResponseEntity<Object> ResetPasswordRequest(
+	@PostMapping("/password-reset/request")
+	public ResponseEntity<Object> PasswordResetRequest(
 			@RequestParam(required = false) @NotBlank(message = "Username or Email Address must be set.") String emailOrUsername)
 			throws AuthApiException {
-		userService.resetPasswordRequest(emailOrUsername, authClientBaseUrl);
+		userService.passwordResetRequest(emailOrUsername, authClientBaseUrl);
 
 		return ResponseEntity
 				.ok()
@@ -131,21 +131,21 @@ public class AuthController {
 						String.format("If an account with %s exists, a password reset email has been sent.", emailOrUsername)));
 	}
 
-	@GetMapping("/reset-password/verify")
-	public ResponseEntity<Object> verifyResetPasswordToken(@RequestParam String token) throws AuthApiException {
+	@GetMapping("/password-reset/verify")
+	public ResponseEntity<Object> verifyPasswordResetToken(@RequestParam String token) throws AuthApiException {
 		return ResponseEntity
 				.ok()
 				.body(Map.of(
 						"timestamp", LocalDateTime.now(),
-						"valid", userService.verifyResetPasswordToken(token),
+						"valid", userService.verifyPasswordResetToken(token),
 						"message", "User does not exist."));
 	}
 
-	@PostMapping("/reset-password/confirm")
-	public ResponseEntity<Object> resetPassword(@RequestParam String token,
+	@PostMapping("/password-reset/confirm")
+	public ResponseEntity<Object> passwordReset(@RequestParam String token,
 			@RequestParam(name = "newPassword", required = false) @NotBlank(message = "newPassword must be set.") String newPassword)
 			throws AuthApiException, URISyntaxException {
-		String emailAddress = userService.confirmResetPassword(token, newPassword);
+		String emailAddress = userService.confirmPasswordReset(token, newPassword);
 		return ResponseEntity
 				.ok()
 				.body(Map.of(
