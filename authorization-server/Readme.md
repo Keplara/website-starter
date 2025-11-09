@@ -1,7 +1,35 @@
 Start
 
 
-### VSCode
+# Docker 
+
+Set envs:
+```shell
+
+    CLIENT_REGISTRATION_SECRET=naifniwuenfanfiownef
+    PORT=8084
+    AWS_S3_BUCKET=certificates
+    AWS_S3_ENDPOINT=http://host.docker.internal:9000
+    AWS_ACCESS_KEY_ID=Supervisor
+    AWS_SECRET_ACCESS_KEY=Supervisor
+    JWT_KEY="QbGq8fD7vFqR5GqvUnkGJQpHcW+byH1E9MUGyJt9nMqZmtayU6H8v4m8cq+Y0bW7Zf+UgE2nBDk="
+    JWT_PAYLOAD_KEY="QbGq8fD7vFqR5GqvUnkGJQpHcW+byH1E9MUGyJt9nMqZmtayU6H8v4m8cq+Y0bW7Zf+UgE2nBDk="
+    REDIS_HOST=host.docker.internal
+    REDIS_USERNAME=Supervisor
+    REDIS_PASSWORD=Supervisor
+    REDIS_PORT=6380
+    MONGO_DATABASE=mysite
+    MONGO_PORT=27020
+    MONGO_HOST=host.docker.internal
+    MONGO_PASSWORD=Supervisor
+    MONGO_USERNAME=Supervisor
+    TRUSTSTORE_PASSWORD=Supervisor
+    EMAIL_MODE=smtp
+    EMAIL_HOST=host.docker.internal
+    EMAIL_PORT=1025
+```
+
+# VSCode
 
 
 ## Add Tasks .vscode/tasks.json

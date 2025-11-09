@@ -36,8 +36,6 @@ local:
     smtp:
       host:  ${EMAIL_HOST}
       port: ${EMAIL_PORT}
-      username: ${EMAIL_USERNAME}
-      password: ${EMAIL_PASSWORD}
   aws:
     accessKey: ${AWS_S3_ACCESS_KEY}
     secretKey: ${AWS_S3_SECRET_KEY}

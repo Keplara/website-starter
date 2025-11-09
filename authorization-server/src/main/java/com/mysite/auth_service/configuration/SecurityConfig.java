@@ -80,8 +80,7 @@ public class SecurityConfig {
 
 						.requestMatchers("/send-test-email").permitAll()
 						.requestMatchers("/test-mongo-record").permitAll()
-
-						.requestMatchers("/error").permitAll()
+						// .requestMatchers("/error").permitAll()
 						.requestMatchers("/login").permitAll()
 						.anyRequest().authenticated())
 				.formLogin(formLogin -> {

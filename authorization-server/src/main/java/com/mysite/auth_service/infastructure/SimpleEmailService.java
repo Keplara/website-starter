@@ -1,6 +1,5 @@
 package com.mysite.auth_service.infastructure;
 
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
@@ -26,9 +25,11 @@ import lombok.NonNull;
 
 @Service
 public class SimpleEmailService {
-        private EmailProperties emailProperties;
 
-        public SimpleEmailService() {
+        private final EmailProperties emailProperties;
+
+        public SimpleEmailService(EmailProperties emailProperties) {
+                this.emailProperties = emailProperties;
         }
 
         public void sendEmail(String emailAddress, String subject, @NonNull String body)
@@ -71,11 +72,14 @@ public class SimpleEmailService {
 
         private void sendViaSMTP(String emailAddress, String subject, String body)
                         throws AuthApiException {
+                System.out.println("Sending email via SES to " + emailAddress);
+
                 Properties props = new Properties();
                 props.put("mail.smtp.host", emailProperties.getSmtp().getHost());
                 props.put("mail.smtp.port", String.valueOf(emailProperties.getSmtp().getPort()));
                 props.put("mail.smtp.auth", "false");
                 props.put("mail.smtp.starttls.enable", "false");
+                props.put("mail.debug", "true");
 
                 Session session = Session.getInstance(props);
 
@@ -91,6 +95,8 @@ public class SimpleEmailService {
                         Transport.send(message);
 
                 } catch (MessagingException e) {
+                        throw new AuthApiException("Failed to send email via SMTP");
+                } catch (Exception e) {
                         throw new AuthApiException("Failed to send email via SMTP");
                 }
         }
