@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.mysite.auth_service.configuration.user.CustomUserDetailsService;
 import com.mysite.auth_service.configuration.user.UsernamePasswordAuthenticationProvider;
+import com.mysite.auth_service.infastructure.RedisSessionTrackerService;
 // import com.mysite.auth_service.repository.UserRepository;
 import com.mysite.auth_service.repository.UserRepository;
 
@@ -53,13 +54,15 @@ public class SecurityConfig {
 				userDetailsService, sharedPasswordEncoder);
 		return new ProviderManager(authenticationProvider);
 	}
-	// control sessions in the cache
 
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AuthenticationManagerBuilder authManager,
-			CustomUserDetailsService userDetailsService, PasswordEncoder sharedPasswordEncoder) throws Exception {
-		// once access token has been given invalidate session on redis
+			CustomUserDetailsService userDetailsService, PasswordEncoder sharedPasswordEncoder,
+			RedisSessionTrackerService redisSessionTrackerService) throws Exception {
 		return http
+				.sessionManagement(
+						sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+								.maximumSessions(5).maxSessionsPreventsLogin(true))
 				.csrf(crsf -> crsf.disable())
 				.authorizeHttpRequests((authorize) -> authorize
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -81,14 +84,15 @@ public class SecurityConfig {
 					});
 
 					formLogin.successHandler((request, response, authentication) -> {
+						String userId = authentication.getName();
+						String sessionId = request.getSession().getId();
+						redisSessionTrackerService.registerSession(userId, sessionId);
 						System.out.println("Login succeeded.");
 						response.setStatus(HttpServletResponse.SC_OK);
 						response.getWriter().write("Login successful!");
 						response.getWriter().flush();
 					});
 				})
-				.sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer
-						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 				.logout(logout -> {
 					logout.logoutUrl("/logout");
 					logout.logoutSuccessUrl("http://localhost:8082/login");
@@ -96,6 +100,9 @@ public class SecurityConfig {
 					logout.clearAuthentication(true);
 					logout.deleteCookies("JSESSIONID");
 					logout.logoutSuccessHandler((request, response, authentication) -> {
+						String userId = authentication.getName();
+						String sessionId = request.getSession().getId();
+						redisSessionTrackerService.deregisterSession(userId, sessionId);
 						System.out.println("Logout Succeeded.");
 						response.setStatus(HttpServletResponse.SC_OK);
 						response.getWriter().write("Logout successful");

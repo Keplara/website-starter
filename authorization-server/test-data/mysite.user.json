@@ -1,0 +1,27 @@
+[{
+  "_id": {
+    "$oid": "6907de5cf972e44811662c48"
+  },
+  "password": "{bcrypt}$2a$10$aAarrYQ9lBWgzCYtKvqW6ufMZClIvT4V3r9AEBh9OGLzssTeXrDdG",
+  "emailAddress": "supervisor@gmail.com",
+  "username": "supervisor",
+  "authorities": [
+    {
+      "role": "SCOPE_product.read",
+      "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
+    },
+    {
+      "role": "ROLE_USER",
+      "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
+    },
+    {
+      "role": "SCOPE_user.read",
+      "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
+    }
+  ],
+  "expired": false,
+  "accountLocked": false,
+  "credentialsExpired": false,
+  "enabled": true,
+  "_class": "com.mysite.auth_service.model.mongo.User"
+}]

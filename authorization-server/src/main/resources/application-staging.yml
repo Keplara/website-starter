@@ -23,6 +23,7 @@ spring:
       host: ${REDIS_HOST}
     timeout: 1m
 local:
+  companyName: ${COMPANY_NAME}
   jwt:
     secretKey: ${JWT_KEY}
     payloadKey: ${JWT_PAYLOAD_KEY} 
@@ -30,7 +31,7 @@ local:
     registration:
       secret: ${CLIENT_REGISTRATION_SECRET}
   email:
-    mode: smtp       # "ses" or "smtp"
+    mode: smtp  # "ses" or "smtp"
     smtp:
       host:  ${EMAIL_HOST}
       port: ${EMAIL_PORT}

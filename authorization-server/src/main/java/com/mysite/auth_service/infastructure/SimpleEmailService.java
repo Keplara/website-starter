@@ -1,4 +1,4 @@
-package com.mysite.auth_service.service;
+package com.mysite.auth_service.infastructure;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;

@@ -3,239 +3,187 @@ package com.mysite.auth_service.controller;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mysite.auth_service.service.SimpleEmailService;
-import com.mysite.auth_service.configuration.ResponseLog;
 import com.mysite.auth_service.configuration.exceptions.AuthApiException;
 import com.mysite.auth_service.configuration.responseObjects.BasicResponse;
-import com.mysite.auth_service.model.jwt.AccountToken;
-import com.mysite.auth_service.model.jwt.ResetPasswordToken;
-import com.mysite.auth_service.model.mongo.TestMongoRecord;
 import com.mysite.auth_service.model.mongo.User;
-import com.mysite.auth_service.model.request.CreateAccountRequest;
-import com.mysite.auth_service.service.AuthService;
-import com.mysite.auth_service.service.RedisTokenService;
-import com.mysite.auth_service.service.TokenService;
+import com.mysite.auth_service.model.request.CreateUserRequest;
+import com.mysite.auth_service.service.UserService;
 
 import jakarta.validation.constraints.NotBlank;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
+import java.time.LocalDateTime;
+import java.util.Map;
+
 import javax.mail.MessagingException;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
 @Validated
+@RequestMapping("/auth")
 public class AuthController {
-	private final AuthService authService;
-	private final TokenService tokenService;
-	private final SimpleEmailService simpleEmailService;
+	private final UserService userService;
 
-	private RedisTemplate<String, String> redisTemplate;
+	@Value("${AUTH_CLIENT_BASE_URL}")
+	private String authClientBaseUrl;
 
-	private PasswordEncoder passwordEncoder;
+	@Value("${local.companyName}")
+	private String companyName;
 
-	private RedisTokenService redisTokenService;
-
-	public AuthController(RedisTokenService redisTokenService, RedisTemplate<String, String> redisTemplate,
-			PasswordEncoder passwordEncoder, SimpleEmailService simpleEmailService, AuthService authService,
-			TokenService tokenService) {
-		this.authService = authService;
-		this.redisTemplate = redisTemplate;
-		this.tokenService = tokenService;
-		this.simpleEmailService = simpleEmailService;
-		this.passwordEncoder = passwordEncoder;
-		this.redisTokenService = redisTokenService;
+	public AuthController(UserService userService) {
+		this.userService = userService;
 	}
 
-	@GetMapping("test-authenticated")
-	public String sendTestAuthenticated() throws AuthApiException {
-		return "Authenticated Success";
-	}
+	/*
+	 * ===========================
+	 * Password Reset Functionality
+	 * ===========================
+	 */
+	/**
+	 * Endpoint to initiate user creation by sending a verification email to the
+	 * user.
+	 * The user provides their email, username, and password, and the system
+	 * generates
+	 * a one-time token stored in Redis for user verification.
+	 *
+	 * Frontend flow:
+	 * 1. User submits signup form with email, username, and password.
+	 * 2. Backend generates token and stores it in Redis with expiration.
+	 * 3. Verification email is sent with a magic link to confirm the user.
+	 *
+	 * @param userRequest The request body containing email, username, and
+	 *                    password.
+	 * @return BasicResponse indicating that the verification email has been sent.
+	 * @throws AuthApiException If the email is already associated with an existing
+	 *                          user.
+	 * @throws IOException,     MessagingException, GeneralSecurityException If
+	 *                          email sending fails.
+	 */
 
-	@GetMapping("test-unauthenticated")
-	public String sendTestUnauthenticated() throws AuthApiException {
-		this.simpleEmailService.sendEmail("grantmitchell@mysite.com", "First Email Subject",
-				"<div><img src=\"https://avatars.githubusercontent.com/u/154090351?s=200&v=4\"><h2>Test Email Succeeds!</h2></div>");
-		return "Unauthenticated Success";
-	}
-
-	@PostMapping("send-test-email")
-	public String sendTestEmail() throws AuthApiException {
-		this.simpleEmailService.sendEmail("grantmitchell@mysite.com", "First Email Subject",
-				"<div><img src=\"https://avatars.githubusercontent.com/u/154090351?s=200&v=4\"><h2>Test Email Succeeds!</h2></div>");
-		return "Email sent successfully!";
-	}
-
-	@ExceptionHandler(value = { AuthApiException.class })
-	protected ResponseEntity<String> handleExceptions(AuthApiException ex) {
-		return new ResponseEntity<String>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-	}
-	// Needs to be refactored
-
-	@PostMapping("/test-mongo-record")
-	public Boolean createMongoRecord(@RequestBody TestMongoRecord record) {
-		// Save the record to MongoDB
-		return authService.saveMongoTestRecord(record);
-	}
-
-	@PostMapping("/create-account")
-	public BasicResponse createAccount(@RequestBody(required = false) CreateAccountRequest accountRequest)
+	@PostMapping("/create-user/request")
+	public BasicResponse createUserRequest(@RequestBody(required = false) CreateUserRequest userRequest)
 			throws AuthApiException, IOException, MessagingException, GeneralSecurityException {
-		User existingUserByEmail = authService.getUser(accountRequest.getEmailAddress());
-
-		if (existingUserByEmail != null) {
-			throw new AuthApiException(
-					String.format("User with email '%s' already exists.", existingUserByEmail.getEmailAddress()));
-		} else {
-			String accountJwtToken = tokenService.createAccountToken(accountRequest.getEmailAddress(),
-					accountRequest.getPassword(), accountRequest.getUsername());
-			simpleEmailService.sendEmail(accountRequest.getEmailAddress(), "Create Account",
-					"Click the link below to create your account. Once you click the link you will be redirected to mysite.com as a signed in user. Thank you for signing up with us today! \n \n https://accounts.mysite.com/verify-new-account?token="
-							+ accountJwtToken);
-			return BasicResponse.builder()
-					.message("Thank you for signing up with us! Please look out for an email to verify your account.")
-					.status(HttpStatus.OK).build();
+		Boolean isUserTokenCreated = userService.createUserRequest(userRequest, authClientBaseUrl);
+		// If user token creation failed, throw an exception
+		if (!isUserTokenCreated) {
+			throw new AuthApiException("User token could not be created.");
 		}
+
+		return BasicResponse.builder()
+				.message("Thank you for signing up with us! Please look out for an email to verify your user.")
+				.status(HttpStatus.OK)
+				.build();
 	}
 
-	@PostMapping("/verify-new-account")
-	public ResponseEntity<Object> verifyAccount(@RequestBody String token) throws AuthApiException, URISyntaxException {
-		AccountToken account = tokenService.parseAccountToken(token);
-		User existingUser = authService.getUser(account.getUsername());
-		if (existingUser != null) {
-			throw new AuthApiException(String.format("User '%s' has already been created.", existingUser.getUserId()));
-		}
-		authService.createUser(account.getUsername(), account.getEmailAddress(), account.getPassword());
-
-		ResponseLog response = new ResponseLog(String.format("Account has been created for %s.", account.getEmailAddress()),
-				HttpStatus.OK);
-		simpleEmailService.sendEmail(account.getEmailAddress(), "Welcome to MySite!",
-				"Thank you for joining us in our journey in a healthy world!");
-
-		return response.getResponse();
+	@GetMapping("/create-user/verify")
+	public ResponseEntity<Map<String, Object>> verifyUserCreationToken(@RequestParam String token)
+			throws AuthApiException {
+		return ResponseEntity
+				.ok()
+				.body(Map.of(
+						"timestamp", LocalDateTime.now(),
+						"valid", userService.verifyUserCreationToken(token),
+						"message", "User does not exist."));
 	}
 
-	@PostMapping("/forgot-password")
-	public ResponseEntity<Object> forgotPassword(
+	@PostMapping("/create-user/confirm")
+	public ResponseEntity<Object> confirmUser(@RequestParam String token)
+			throws AuthApiException, URISyntaxException {
+		User createdUser = userService.confirmUserCreation(token, authClientBaseUrl);
+
+		return ResponseEntity
+				.ok()
+				.body(Map.of(
+						"timestamp", LocalDateTime.now(),
+						"message", String.format("User has been created for %s.", createdUser.getEmailAddress())));
+	}
+
+	/*
+	 * ===========================
+	 * Password Reset Functionality
+	 * ===========================
+	 */
+	@PostMapping("/reset-password/request")
+	public ResponseEntity<Object> ResetPasswordRequest(
 			@RequestParam(required = false) @NotBlank(message = "Username or Email Address must be set.") String emailOrUsername)
 			throws AuthApiException {
-		User existingUser = authService.getUser(emailOrUsername);
-		if (existingUser == null) {
-			throw new AuthApiException(String.format("User does not exist."));
-		}
-		String resetPasswordToken = tokenService.createResetPasswordToken(emailOrUsername);
-		redisTokenService.addToken(resetPasswordToken);
-		ResponseLog response = new ResponseLog(String.format("Email has been sent with a verification token."),
-				HttpStatus.OK);
-		simpleEmailService.sendEmail(existingUser.getEmailAddress(), "Password Reset",
-				"Please click the link below to reset your password. \n https://accounts.mysite.com/update-password?token="
-						+ resetPasswordToken);
+		userService.resetPasswordRequest(emailOrUsername, authClientBaseUrl);
 
-		return response.getResponse();
+		return ResponseEntity
+				.ok()
+				.body(Map.of(
+						"timestamp", LocalDateTime.now(),
+						"message",
+						String.format("If an account with %s exists, a password reset email has been sent.", emailOrUsername)));
 	}
 
-	@PostMapping("/reset-password")
-	public ResponseEntity<Object> resetPassword(@RequestBody String token,
+	@GetMapping("/reset-password/verify")
+	public ResponseEntity<Object> verifyResetPasswordToken(@RequestParam String token) throws AuthApiException {
+		return ResponseEntity
+				.ok()
+				.body(Map.of(
+						"timestamp", LocalDateTime.now(),
+						"valid", userService.verifyResetPasswordToken(token),
+						"message", "User does not exist."));
+	}
+
+	@PostMapping("/reset-password/confirm")
+	public ResponseEntity<Object> resetPassword(@RequestParam String token,
 			@RequestParam(name = "newPassword", required = false) @NotBlank(message = "newPassword must be set.") String newPassword)
 			throws AuthApiException, URISyntaxException {
-		if (!redisTokenService.isTokenActive(token)) {
-			throw new AuthApiException("Token has expired");
-		}
-		;
-
-		ResetPasswordToken resetPasswordToken = tokenService.parseResetPasswordToken(token);
-		System.out.println(resetPasswordToken.getEmailOrUsername());
-		User updatedUser = authService.updateUserPassword(resetPasswordToken.getEmailOrUsername(), newPassword);
-		redisTokenService.expireToken(token);
-
-		// if user already updated their password make token expire.
-		ResponseLog response = new ResponseLog(
-				String.format("Password has been updated for %s", updatedUser.getEmailAddress()), HttpStatus.OK);
-		simpleEmailService.sendEmail(updatedUser.getEmailAddress(), "Your password has been updated :)",
-				"If this isn't you please contact us so we can help resolve the issue.");
-
-		return response.getResponse();
+		String emailAddress = userService.confirmResetPassword(token, newPassword);
+		return ResponseEntity
+				.ok()
+				.body(Map.of(
+						"timestamp", LocalDateTime.now(),
+						"message", String.format("Password has been updated for %s", emailAddress)));
 	}
 
-	// Create Auth Client
-	// Create Admin Client
-	// Create login on the Main Client
+	// Delete acccount
+	/// Require scope user.user.delete
+	/// only delete the user of the logged in user which is store in the redis
+	// token
+	/// // delete current session after delete user
+	/// revoke access token
 
-	// @PreAuthorize("hasAuthority('SCOPE_admin.user.create')")
-	@PostMapping("/create-admin-account")
-	public String createAdminAccount(@RequestBody(required = false) CreateAccountRequest accountRequest)
-			throws AuthApiException, IOException, MessagingException, GeneralSecurityException {
-		User existingUserByEmail = authService.getUser(accountRequest.getEmailAddress());
-
-		if (existingUserByEmail != null) {
-			throw new AuthApiException(
-					String.format("Admin User with email '%s' already exists.", existingUserByEmail.getEmailAddress()));
-		} else {
-			String accountJwtToken = tokenService.createAccountToken(accountRequest.getEmailAddress(),
-					accountRequest.getPassword(), accountRequest.getUsername());
-			simpleEmailService.sendEmail(accountRequest.getEmailAddress(), "Create Account",
-					"Click the link below to create your account. Once you click the link you will be redirected to mysite.com as a signed in user. Thank you for signing up with us today! \n \n https://accounts.mysite.com/verify-new-account?token="
-							+ accountJwtToken);
-			return accountJwtToken;
-		}
+	/**
+	 * Delete the currently logged-in user user.
+	 * 
+	 * Security:
+	 * - Requires the scope 'SCOPE_user.user.delete'.
+	 * - Only deletes the user of the authenticated user.
+	 * 
+	 * Steps:
+	 * 1. Retrieve current user from security context / token.
+	 * 2. Delete the user from the database.
+	 * 3. Delete any active sessions from Redis.
+	 * 4. Revoke the access token.
+	 */
+	@DeleteMapping("/user")
+	@PreAuthorize("hasAuthority('SCOPE_user.user.delete')")
+	public ResponseEntity<BasicResponse> deleteUser(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestHeader("Authorization") String authHeader)
+			throws AuthApiException {
+		userService.deleteUser(userDetails, authHeader);
+		return ResponseEntity.ok(
+				BasicResponse.builder()
+						.message("Your user has been deleted successfully.")
+						.status(HttpStatus.OK)
+						.build());
 	}
-
-	// @PreAuthorize("hasAuthority('SCOPE_admin.user.create')")
-	@PostMapping("/verify-new-admin-account")
-	public ResponseEntity<Object> verifyAdminAccount(@RequestBody String token)
-			throws AuthApiException, URISyntaxException {
-		AccountToken account = tokenService.parseAccountToken(token);
-		User existingUser = authService.getUser(account.getUsername());
-		if (existingUser != null) {
-			throw new AuthApiException(String.format("User '%s' has already been created.", existingUser.getUserId()));
-		}
-		authService.createAdminUser(account.getUsername(), account.getEmailAddress(), account.getPassword());
-
-		ResponseLog response = new ResponseLog(String.format("Account has been created for %s.", account.getEmailAddress()),
-				HttpStatus.OK);
-		simpleEmailService.sendEmail(account.getEmailAddress(), "Welcome to MySite!",
-				"Thank you for joining us in our journey in a healthy world!");
-
-		return response.getResponse();
-	}
-
-	// // authorization client calls
-	// @PostMapping("/login")
-	// public Boolean login(@RequestBody LoginRequest loginRequest) throws
-	// AuthenticationException, AuthApiException, MalformedURLException {
-	// User user = authService.getUser(loginRequest.getUsername());
-	// if (user == null){
-	// throw new AuthApiException("User does not exist, please verify the
-	// credentials you are entering are correct.");
-	// }
-
-	// String encryptedPasswordFromDatabase = user.getPassword(); // Assuming
-	// getPassword() returns the encrypted password
-
-	// boolean passwordMatch = passwordEncoder.matches(loginRequest.getPassword(),
-	// encryptedPasswordFromDatabase);
-
-	// if (!passwordMatch) {
-	// throw new AuthApiException("Invalid username or password."); // or return an
-	// error message indicating invalid credentials
-	// }
-
-	// // send back redirect uri
-	// return true;
-	// }
-
-	// @PutMapping("/logout/{userId}")
-	// public void logout(Authentication authentication) {
-	// // remove reddis token attached to user.
-	// }
 
 }

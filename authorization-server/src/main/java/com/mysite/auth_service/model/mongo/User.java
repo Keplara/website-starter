@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.mysite.auth_service.model.PendingUser;
+
 import java.util.HashMap;
 
 @Document("user")
@@ -38,25 +40,14 @@ public class User {
   private Boolean credentialsExpired;
   private Boolean enabled;
 
-  // private String name;
-  // // user profile endpoint
-  // private String profile;
-  // private String picture;
-  // private LocalDate birthdate;
-  // private String zone;
-  // private String local;
-  // private String phoneNumber;
-  // private String address;
-
   public User() {
   }
 
-  public User(String username, String emailAddress, String password, Collection<? extends GrantedAuthority> authorities) {
-    this.password = password;
-    this.emailAddress = emailAddress;
-    this.username = username;
-    this.authorities = authorities;
-    this.authorities = authorities;
+  public User(PendingUser accountVerificationData) {
+    this.password = accountVerificationData.getPassword();
+    this.emailAddress = accountVerificationData.getEmailAddress();
+    this.username = accountVerificationData.getUsername();
+    this.authorities = accountVerificationData.getAuthorities();
     this.expired = false;
     this.accountLocked = false;
     this.credentialsExpired = false;

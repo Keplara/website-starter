@@ -1,4 +1,4 @@
-package com.mysite.auth_service.service;
+package com.mysite.auth_service.infastructure;
 
 import lombok.Data;
 
@@ -9,9 +9,10 @@ public class RegisterClientResponse {
 
     public String clientSecret;
 
-    public RegisterClientResponse(){}
+    public RegisterClientResponse() {
+    }
 
-    public RegisterClientResponse(String clientId, String clientSecret){
+    public RegisterClientResponse(String clientId, String clientSecret) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
     }
