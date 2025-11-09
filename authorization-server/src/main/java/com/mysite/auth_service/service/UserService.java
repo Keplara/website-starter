@@ -74,7 +74,8 @@ public class UserService {
 
       // emailService.sendUserVerificationEmail(emailAddress, userBaseURLToken);
       // Build the verification URL with the token
-      String userVerificationUrl = String.format("%s/verify?token=%s", authClientBaseUrl, userBaseURLToken);
+      String userVerificationUrl = String.format("%s/create-user/confirm?token=%s", authClientBaseUrl,
+          userBaseURLToken);
 
       // Email body with instructions for verifying the user
       String body = String.format(
@@ -237,7 +238,7 @@ public class UserService {
     if (!isDeleted) {
       throw new AuthApiException("User could not be deleted.");
     }
-    // // 3️⃣ Revoke the access token provided in the Authorization header
+    // 3️⃣ Revoke the access token provided in the Authorization header
     // if (authHeader != null && authHeader.startsWith("Bearer ")) {
     // String accessToken = authHeader.substring(7);
     // redisService.revokeAccessToken(accessToken);

@@ -104,7 +104,7 @@ public class AuthController {
 	public ResponseEntity<Object> confirmUser(@RequestParam String token)
 			throws AuthApiException, URISyntaxException {
 		User createdUser = userService.confirmUserCreation(token, authClientBaseUrl);
-
+		// create-user not work --- IGNORE ---
 		return ResponseEntity
 				.ok()
 				.body(Map.of(
@@ -176,8 +176,7 @@ public class AuthController {
 	@DeleteMapping("/user")
 	@PreAuthorize("hasAuthority('SCOPE_user.user.delete')")
 	public ResponseEntity<BasicResponse> deleteUser(@AuthenticationPrincipal UserDetails userDetails,
-			@RequestHeader("Authorization") String authHeader)
-			throws AuthApiException {
+			@RequestHeader("Authorization") String authHeader) throws AuthApiException {
 		userService.deleteUser(userDetails, authHeader);
 		return ResponseEntity.ok(
 				BasicResponse.builder()

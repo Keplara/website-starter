@@ -65,29 +65,33 @@ public class SecurityConfig {
 		String StrippedAuthClientBaseUrl = authClientBaseUrl.replaceAll("/+$", "");
 		return http
 				.sessionManagement(
-						sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+						sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
 								.maximumSessions(5).maxSessionsPreventsLogin(true))
 				.csrf(crsf -> crsf.disable())
+
 				.authorizeHttpRequests((authorize) -> authorize
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						.requestMatchers("auth/create-user/request").permitAll()
-						.requestMatchers("auth/create-user/verify").permitAll()
-						.requestMatchers("auth/create-user/confirm").permitAll()
+						.requestMatchers(HttpMethod.POST, "/auth/create-user/request").permitAll()
+						.requestMatchers(HttpMethod.GET, "/auth/create-user/verify").permitAll()
+						.requestMatchers(HttpMethod.POST, "/auth/create-user/confirm").permitAll()
 
-						.requestMatchers("auth/password-reset/request").permitAll()
-						.requestMatchers("auth/password-reset/verify").permitAll()
-						.requestMatchers("auth//password-reset/confirm").permitAll()
+						.requestMatchers(HttpMethod.POST, "/auth/password-reset/request").permitAll()
+						.requestMatchers(HttpMethod.GET, "/auth/password-reset/verify").permitAll()
+						.requestMatchers(HttpMethod.POST, "/auth/password-reset/confirm").permitAll()
 
 						.requestMatchers("/send-test-email").permitAll()
 						.requestMatchers("/test-mongo-record").permitAll()
-						// .requestMatchers("/error").permitAll()
+						.requestMatchers("/error").permitAll()
 						.requestMatchers("/login").permitAll()
 						.anyRequest().authenticated())
+
 				.formLogin(formLogin -> {
+
 					formLogin.loginProcessingUrl("/login");
 					formLogin.loginPage(StrippedAuthClientBaseUrl + "/login");
 					formLogin.usernameParameter("emailOrUsername");
 					formLogin.passwordParameter("password");
+
 					formLogin.failureHandler((request, response, authentication) -> {
 						System.out.println("Login failed.");
 						response.sendRedirect(StrippedAuthClientBaseUrl + "/login?error=true");
