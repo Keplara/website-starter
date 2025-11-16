@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -20,37 +20,33 @@ import java.util.UUID;
 @Configuration
 public class ClientConfig {
 	// aws secret manager
-	@Value("${client.registration.secret}")
-	private String secret;
+	@Value("${local.userAuthClientSecret}")
+	private String userAuthClientSecret;
+
+	private PasswordEncoder passwordEncoder;
+
+	public ClientConfig(PasswordEncoder passwordEncoder) {
+		this.passwordEncoder = passwordEncoder;
+	}
+
+	@Value("${local.authClientBaseUrl}")
+	private String authClientBaseUrl;
 
 	@Bean
 	public RedisRegisteredClientRepository registeredClientRepository(
 			RedisTemplate<String, RegisteredClient> redisTemplate) {
-		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-		// Will not work register auth clients manually
-		// RegisteredClient clientDeveloperRegistrar =
-		// RegisteredClient.withId(UUID.randomUUID().toString())
-		// .clientId("internal-registrar-client")
-		// .clientSecret("{bcrypt}"+passwordEncoder.encode(secret))
-		// .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-		// .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-		// .scope("client.create")
-		// .scope("client.read")
-		// .clientSettings(ClientSettings.builder()
-		// .requireAuthorizationConsent(false)
-		// .build())
-		// .build();
+		String StrippedAuthClientBaseUrl = authClientBaseUrl.replaceAll("/+$", "");
 
-		RegisteredClient authClientMain = RegisteredClient.withId(UUID.randomUUID().toString())
-				.clientId("auth-client")
-				.clientSecret("{bcrypt}" + passwordEncoder.encode(secret))
+		RegisteredClient userAuthClient = RegisteredClient.withId(UUID.randomUUID().toString())
+				.clientId("userAuthClient")
+				.clientSecret(passwordEncoder.encode(userAuthClientSecret))
 				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
 				.redirectUris(uris -> {
-					uris.add("http://localhost:8082/callback");
+					uris.add(StrippedAuthClientBaseUrl + "/callback");
 				})
-				.postLogoutRedirectUri("http://localhost:8082/logout")
+				.postLogoutRedirectUri(StrippedAuthClientBaseUrl + "/logout")
 				.scope("product:read")
 				.scope("user:read")
 				.scope("subscription:bronze")
@@ -59,7 +55,7 @@ public class ClientConfig {
 				.scope(OidcScopes.PROFILE)
 				.tokenSettings(TokenSettings.builder()
 						.authorizationCodeTimeToLive(Duration.ofMinutes(2))
-						.accessTokenTimeToLive(Duration.ofMinutes(20))
+						.accessTokenTimeToLive(Duration.ofMinutes(2))
 						.refreshTokenTimeToLive(Duration.ofDays(30))
 						.reuseRefreshTokens(false)
 						.build())
@@ -70,7 +66,7 @@ public class ClientConfig {
 				.build();
 
 		// admin auth client
-		return new RedisRegisteredClientRepository(redisTemplate, authClientMain);
+		return new RedisRegisteredClientRepository(redisTemplate, userAuthClient);
 	}
 
 }

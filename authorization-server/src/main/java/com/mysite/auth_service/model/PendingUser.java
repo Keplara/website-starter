@@ -20,8 +20,8 @@ public class PendingUser implements Serializable {
 
   public PendingUser(String emailAddress, String username, String password,
       Collection<GrantedAuthority> authorities) {
-    this.emailAddress = emailAddress;
-    this.username = username;
+    this.emailAddress = emailAddress.toLowerCase();
+    this.username = username.toLowerCase();
     this.password = password;
     this.createdOn = LocalDateTime.now();
   }

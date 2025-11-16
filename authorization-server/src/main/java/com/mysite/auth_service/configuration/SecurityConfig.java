@@ -42,12 +42,17 @@ public class SecurityConfig {
 		return new CustomUserDetailsService(userRepository);
 	}
 
+	// @Bean
+	// PasswordEncoder customPasswordEncoder() {
+	// String idForEncode = "bcrypt";
+	// Map<String, PasswordEncoder> encoders = new HashMap<>();
+	// encoders.put(idForEncode, new BCryptPasswordEncoder());
+	// return new DelegatingPasswordEncoder(idForEncode, encoders);
+	// }
+
 	@Bean
-	PasswordEncoder customPasswordEncoder() {
-		String idForEncode = "bcrypt";
-		Map<String, PasswordEncoder> encoders = new HashMap<>();
-		encoders.put(idForEncode, new BCryptPasswordEncoder());
-		return new DelegatingPasswordEncoder("bcrypt", encoders);
+	PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
 
 	@Bean

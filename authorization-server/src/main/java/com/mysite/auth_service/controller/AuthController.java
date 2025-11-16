@@ -96,8 +96,7 @@ public class AuthController {
 				.ok()
 				.body(Map.of(
 						"timestamp", LocalDateTime.now(),
-						"valid", userService.verifyUserCreationToken(token),
-						"message", "User does not exist."));
+						"valid", userService.verifyUserCreationToken(token)));
 	}
 
 	@PostMapping("/create-user/confirm")
@@ -137,8 +136,7 @@ public class AuthController {
 				.ok()
 				.body(Map.of(
 						"timestamp", LocalDateTime.now(),
-						"valid", userService.verifyPasswordResetToken(token),
-						"message", "User does not exist."));
+						"valid", userService.verifyPasswordResetToken(token)));
 	}
 
 	@PostMapping("/password-reset/confirm")

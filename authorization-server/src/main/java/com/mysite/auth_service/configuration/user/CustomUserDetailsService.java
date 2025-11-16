@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmailAddress) throws UsernameNotFoundException {
         // Attempt to find user by username
-        User foundUser = this.userRepository.findByUsername(usernameOrEmailAddress);
+        User foundUser = this.userRepository.findByUsername(usernameOrEmailAddress.toLowerCase());
         // If not found, attempt to find by email address
         if (foundUser == null) {
             foundUser = this.userRepository.findByEmailAddress(usernameOrEmailAddress);
@@ -29,8 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         // If still not found, throw UsernameNotFoundException
         if (foundUser == null) {
             throw new UsernameNotFoundException(
-                String.format("User with username or email %s could not be found.", usernameOrEmailAddress)
-            );
+                    String.format("User with username or email %s could not be found.", usernameOrEmailAddress));
         }
 
         return new AdminUserDetails(foundUser);

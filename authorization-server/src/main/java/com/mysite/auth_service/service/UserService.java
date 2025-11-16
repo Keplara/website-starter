@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,17 +35,17 @@ public class UserService {
 
   @Value("${local.companyName}")
   private String companyName;
-  private final PasswordEncoder passwordEncoder;
 
   private RedisService redisService;
   private MongoService mongoService;
+  private PasswordEncoder passwordEncoder;
 
   public UserService(RedisService redisService, RedisTemplate<String, String> redisTemplate,
-      PasswordEncoder passwordEncoder, MongoService mongoService, SimpleEmailService simpleEmailService) {
+      MongoService mongoService, SimpleEmailService simpleEmailService, PasswordEncoder passwordEncoder) {
     this.simpleEmailService = simpleEmailService;
     this.redisService = redisService;
-    this.mongoService = mongoService;
     this.passwordEncoder = passwordEncoder;
+    this.mongoService = mongoService;
   }
 
   public Boolean createUserRequest(CreateUserRequest userRequest, String authClientBaseUrl)
@@ -66,6 +67,7 @@ public class UserService {
           new SimpleGrantedAuthority("SCOPE_user.read"));
       // Create user verification data and store in Redis
       // Token will expire automatically after a configured duration
+
       String userBaseURLToken = this.redisService.storeUser(
           new PendingUser(
               emailAddress,
@@ -74,7 +76,7 @@ public class UserService {
 
       // emailService.sendUserVerificationEmail(emailAddress, userBaseURLToken);
       // Build the verification URL with the token
-      String userVerificationUrl = String.format("%s/create-user/confirm?token=%s", authClientBaseUrl,
+      String userVerificationUrl = String.format("%s/create-user?token=%s", authClientBaseUrl,
           userBaseURLToken);
 
       // Email body with instructions for verifying the user
@@ -139,6 +141,8 @@ public class UserService {
   }
 
   public Boolean updateUserPassword(String emailOrUsername, String newPassword) {
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     String hashedPassword = passwordEncoder.encode(newPassword);
     return mongoService.updateUserPassword(emailOrUsername, hashedPassword);
   }
@@ -161,7 +165,7 @@ public class UserService {
 
     String token = redisService.storePasswordReset(existingUser.getEmailAddress());
 
-    String resetUrl = String.format("%s/reset-password?token=%s", authClientBaseUrl, token);
+    String resetUrl = String.format("%s/password-reset?token=%s", authClientBaseUrl, token);
 
     String body = String.format(
         "Please click the link below to reset your password.\n%s",
