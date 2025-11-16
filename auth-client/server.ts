@@ -1,12 +1,32 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine } from '@angular/ssr';
-import express from 'express';
+import express, { Request } from 'express';
 import { fileURLToPath } from 'node:url';
+import crypto from 'node:crypto';
+import session from 'express-session';
+
+// Local session shape used by this app. Keep it minimal and extend as needed.
+type AppSession = {
+  codeVerifier?: string;
+  state?: string;
+  [key: string]: any;
+};
+
+// Request with session: an intersection type so we don't modify Express globals.
+type RequestWithSession = Request & { session: AppSession };
+
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
+import { login } from './serverModules/login';
+import { generatePKCE } from './serverModules/generatePKCE';
 
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
+  console.log('Starting server...');
+  const AUTHORIZATION_SERVER_BASE_URL = process.env['AUTHORIZATION_SERVER_BASE_URL'] || 'http://localhost:8084';
+  const AUTH_CLIENT_BASE_URL = process.env['AUTH_CLIENT_BASE_URL'] || 'http://localhost:8082';
+  const USER_AUTH_CLIENT_ID = process.env['USER_AUTH_CLIENT_ID'] || 'userAuthClient';
+  const ADMIN_AUTH_CLIENT_ID = process.env['ADMIN_AUTH_CLIENT_ID'];
   const server = express();
   const DEFAULT_REDIRECT_URI = process.env['DEFUALT_REDIRECT_URI'] || 'http://localhost:8080';
 
@@ -19,194 +39,87 @@ export function app(): express.Express {
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
 
-  const axios = require('axios');
-  
-  const getTokenAndRegisterClient = async () => {
-    try {
-      const authHeader = Buffer.from(
-        `${process.env['CLIENT_ID']}:${process.env['CLIENT_KEY']}`
-      ).toString('base64');
-  
-      // Step 1: Get the token
-      // on behalf of a server not user
-      // const tokenResponse = await axios.post(
-      //   'http://localhost:8084/connect/token',
-      //   new URLSearchParams({
-      //     grant_type: 'client_credentials',
-      //     scope: 'client.create'
-      //   }),
-      //   {
-      //     headers: {
-      //       'Authorization': `Basic ${authHeader}`,
-      //       'Content-Type': 'application/x-www-form-urlencoded'
-      //     }
-      //   }
-      // );
+  // Parse JSON and urlencoded bodies for POST handlers
+  server.use(express.json());
+  server.use(express.urlencoded({ extended: true }));
 
-      const tokenResponse = await axios.post(
-        'http://localhost:8084/connect/token',
-        new URLSearchParams({
-          grant_type: 'authorization_code',
-          scope: 'client.create'
-        }),
-        {
-          headers: {
-            'Authorization': `Basic ${authHeader}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
-      );
+  // Session middleware. This is what makes `req.session` available.
+  server.use(
+    session({
+      secret: 'a-very-secret-key-that-you-should-change', // TODO: Change this to a secure, random string from environment variables
+      resave: false,
+      saveUninitialized: true,
+      cookie: {
+        secure: false, // Set to true if you're using HTTPS
+        httpOnly: true,
+      },
+    })
+  );
 
-  
-      const accessToken = tokenResponse.data.access_token;
-      console.log("Access token:", accessToken);
-  
-      // Step 2: Use the token to register a client
-      const registerResponse = await axios.post(
-        'http://localhost:8084/connect/register',
-        {
-          client_name: "internal-registrar-client",
-          redirect_uris: ["http://localhost:8082/callback"],
-          scopes: [
-            "user:read",
-            "profile"
-          ],
-          grant_types: ["authorization_code", "refresh_token"],
-          response_types: ["token"],
-          post_logout_redirect_uri: "http://localhost:8082/logout",
-          client_authentication_method: "none",
-          require_proof_key: true
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-  
-      console.log("Client registered:", registerResponse.data);
-    } catch (error: any) {
-      console.error("Error:", error?.response?.data || error?.message);
-    }
-  };
-  
-  getTokenAndRegisterClient();
-  // store json output to local fs ./tmp/creds.json
-
-  // Example Express Rest API endpoints
-  // server.get('/api/**', (req, res) => { });
-  // Serve static files from /browser
+  // const axios = require('axios'); // Removed: not used in current flow
   server.get('*.*', express.static(browserDistFolder, {
     maxAge: '1y'
   }));
+  
+  // server.get('/', express.static(browserDistFolder, {
+  //   maxAge: '1y'  // Cache static files for 1 year
+  // }));
+  
+  
+  server.get('/', (req, res) => {
+  console.log('Received /login request with query:', req.query);
 
-  server.get('/', (req, res, next) => {
+  let { cid, redirectURI } = req.query;
+  cid = typeof cid === 'string' ? cid : '';
+  redirectURI = typeof redirectURI === 'string' ? redirectURI : '';
+
+  // Only redirect if either is missing
+  if (!cid || !redirectURI) {
+    const params = new URLSearchParams({
+      cid: cid || '1',
+      redirectURI: redirectURI || DEFAULT_REDIRECT_URI
+    });
+    const redirectUrl = '/login?' + params.toString();
+    console.log('Redirecting to:', redirectUrl);
+    return res.redirect(redirectUrl);
+  }
+  // Pass to Angular SSR
+});
+  
+  server.post('/login', async (req: any, res: any) => {
+    const reqWithSession = req as RequestWithSession;
+
+    const { username, password } = req.body;
+
+    const validUser = await login(AUTHORIZATION_SERVER_BASE_URL, username, password);
+    if (!validUser){
+      return res.status(401).send('Invalid credentials');
+    } 
+
+    // Generate state + code challenge for PKCE
+    const { codeVerifier, codeChallenge } = generatePKCE();
+    console.log("generatePKCE:",codeChallenge, codeVerifier);
+    reqWithSession.session.codeVerifier = codeVerifier;
+    reqWithSession.session.state = crypto.randomUUID();
     const { cid, redirectURI } = req.query;
-    const defaultParams = new URLSearchParams({ redirectURI: DEFAULT_REDIRECT_URI, cid: "1"}).toString();
 
-    if (!redirectURI || !cid) {
-      req.url = req.url + (req.url.includes('?') ? '&' : '?') + defaultParams;
-    }
+    const clientIdMap: { [key: string]: string | undefined } = {
+      '1': USER_AUTH_CLIENT_ID,
+      '3': ADMIN_AUTH_CLIENT_ID
+    };
+    const clientId = clientIdMap[String(cid)] || USER_AUTH_CLIENT_ID;
+    // Redirect to your *authorization server’s* /oauth2/authorize
+    const authorizeUrl = `${AUTHORIZATION_SERVER_BASE_URL}/oauth2/authorize`
+      + `?response_type=code`
+      + `&client_id=${clientId}`
+      + `&redirect_uri=${AUTH_CLIENT_BASE_URL}/callback`
+      + `&scope=user:read`
+      + `&code_challenge=${codeChallenge}`
+      + `&code_challenge_method=S256`
+      + `&state=${reqWithSession.session.state}`;
 
-    next();
+    res.redirect(authorizeUrl);
   });
-  
-  server.get('/', express.static(browserDistFolder, {
-    maxAge: '1y' 
-  }));
-
-
-  const exchangeAuthCodeForTokens = async (authorizationCode: any, req: any, res: any) => {
-    try {
-      const tokenResponse = await axios.post(
-        'http://localhost:8084/oauth2/token',  // Token exchange endpoint
-       {
-          grant_type: 'authorization_code',  // Using authorization code
-          code: authorizationCode,           // The authorization code received
-          redirect_uri: 'http://localhost:8082/callback',  // The same redirect URI as before
-          client_id: process.env['CLIENT_ID'],  // Your client ID
-          client_secret: process.env['CLIENT_SECRET'],  // Your client secret
-        },
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',  // Content type for token request
-          },
-        }
-      );
-  
-      // Access token and refresh token
-      const { access_token, refresh_token } = tokenResponse.data;
-  
-      console.log('Access Token:', access_token);
-      console.log('Refresh Token:', refresh_token);
-  
-      // Store tokens for future use
-      // e.g., store them in a session or a secure place
-      req.session.access_token = access_token;
-      req.session.refresh_token = refresh_token;
-  
-      // Redirect to the main page or wherever you need to go after login
-      res.redirect('/dashboard');  // Redirect after successful login
-    } catch (error) {
-      console.error('Error exchanging authorization code for tokens:', error?.response?.data || error?.message);
-    }
-  };
-  
-  // Example usage in the callback handler
-  app.get('/callback', (req: any, res: any) => {
-    const { code } = req.query;  // The authorization code from the query parameters
-    exchangeAuthCodeForTokens(code, req, res);  // Exchange the code for tokens
-  });
-
-  server.get('/flow', (req, res) => {
-    const authorizationUrl = `http://localhost:8084/oauth2/authorize?response_type=code`
-      + `&client_id=${process.env['CLIENT_ID']}`
-      + `&redirect_uri=http://localhost:8082/callback`
-      + `&scope=openid%20profile`
-      + `&state=randomState123`;  // Optional: Include a CSRF state
-  
-    res.redirect(authorizationUrl);  // Redirect to the authorization server
-  });
-
-  server.get('/login', (req, res, next) => {
-    const { cid, redirectURI } = req.query;
-    const defaultParams = new URLSearchParams({
-      redirectURI: DEFAULT_REDIRECT_URI,
-      cid: '1'
-    }).toString();
-    if (!redirectURI || !cid) {
-      // Redirect to the same URL with the default parameters
-      const redirectUrl = req.baseUrl + req.path + (req.url.includes('?') ? '&' : '?') + defaultParams;
-      console.log(redirectUrl)
-      return res.redirect(redirectUrl);
-    }
-  
-    next();
-  });
-  
-  // POST /login route handling login request
-  server.post('/login', (req: any, res: any, ) => {
-    // Access query parameters or request body
-    const { cid, redirectURI } = req.query;  // Assuming these are query parameters
-    // Or if they're in the body:
-    // const { cid, redirectURI } = req.body;
-  
-    const username = req.body.emailOrUsername;
-    const password = req.body.password;
-  
-    // Validate or process the login (add your logic here)
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required.' });
-    }
-
-    // send request to authorization server.
-
-  });
-  // Serve static files with caching for the root route
-  server.get('/login', express.static(browserDistFolder, {
-    maxAge: '1y'  // Cache static files for 1 year
-  }));
   
 
   // All regular routes use the Angular engine
