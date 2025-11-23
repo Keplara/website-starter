@@ -1,0 +1,35 @@
+<div class="error-container">
+  <div class="error-content">
+    <div class="error-icon">
+      <mat-icon>error_outline</mat-icon>
+    </div>
+    
+    <h1 class="error-title" *ngIf="!loading && errorDetails">
+      Error {{ errorDetails.status }}: {{ errorDetails.error }}
+    </h1>
+    <h1 class="error-title" *ngIf="loading">Loading error details...</h1>
+    
+    <p class="error-message" *ngIf="!loading && errorDetails">
+      {{ errorDetails.message }}
+    </p>
+    
+    <div class="error-actions">
+      <button mat-raised-button color="primary" routerLink="/">
+        <mat-icon>home</mat-icon>
+        Go to Home
+      </button>
+      <button mat-stroked-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Go Back
+      </button>
+    </div>
+    
+    <div class="error-details" *ngIf="!loading && errorDetails">
+      <p class="help-text">
+        <strong>Path:</strong> {{ errorDetails.path }}<br>
+        <strong>Time:</strong> {{ errorDetails.timestamp | date:'medium' }}
+      </p>
+      <p class="help-text">If the problem persists, please contact support.</p>
+    </div>
+  </div>
+</div>

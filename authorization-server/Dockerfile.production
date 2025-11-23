@@ -1,6 +1,7 @@
 FROM gradle:8.14.3-jdk17-alpine AS build
 WORKDIR /app
 COPY . .
+RUN rm -rf client
 RUN gradle clean build --no-daemon -x test
 
 FROM openjdk:17-jdk-alpine-3.22

@@ -1,4 +1,4 @@
 export const environment = {
-    title: 'MySite Default',
+    title: 'Keplara Default',
     production: true,
 };

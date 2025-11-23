@@ -13,12 +13,15 @@ public class CustomRedirectUriValidator implements Consumer<OAuth2AuthorizationC
 
 	@Override
 	public void accept(OAuth2AuthorizationCodeRequestAuthenticationContext authenticationContext) {
-		OAuth2AuthorizationCodeRequestAuthenticationToken authorizationCodeRequestAuthentication =
-			authenticationContext.getAuthentication();
+		OAuth2AuthorizationCodeRequestAuthenticationToken authorizationCodeRequestAuthentication = authenticationContext
+				.getAuthentication();
 		RegisteredClient registeredClient = authenticationContext.getRegisteredClient();
 		String requestedRedirectUri = authorizationCodeRequestAuthentication.getRedirectUri();
-
-		// Use exact string matching when comparing client redirect URIs against pre-registered URIs
+		System.out.println(requestedRedirectUri);
+		registeredClient.getRedirectUris().forEach(
+				uri -> System.out.println("Registered URI: " + uri));
+		// Use exact string matching when comparing client redirect URIs against
+		// pre-registered URIs
 		if (!registeredClient.getRedirectUris().contains(requestedRedirectUri)) {
 			OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST);
 			throw new OAuth2AuthorizationCodeRequestAuthenticationException(error, null);

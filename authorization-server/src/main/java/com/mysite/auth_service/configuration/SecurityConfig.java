@@ -14,12 +14,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import com.mysite.auth_service.configuration.user.CustomUserDetailsService;
 import com.mysite.auth_service.configuration.user.UsernamePasswordAuthenticationProvider;
@@ -32,9 +28,6 @@ import jakarta.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 public class SecurityConfig {
-
-	@Value("${local.authClientBaseUrl}")
-	private String authClientBaseUrl;
 
 	@Bean
 	@Primary
@@ -67,7 +60,6 @@ public class SecurityConfig {
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AuthenticationManagerBuilder authManager,
 			CustomUserDetailsService userDetailsService, PasswordEncoder sharedPasswordEncoder,
 			RedisSessionTrackerService redisSessionTrackerService) throws Exception {
-		String StrippedAuthClientBaseUrl = authClientBaseUrl.replaceAll("/+$", "");
 		return http
 				.sessionManagement(
 						sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
@@ -79,27 +71,31 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/auth/create-user/request").permitAll()
 						.requestMatchers(HttpMethod.GET, "/auth/create-user/verify").permitAll()
 						.requestMatchers(HttpMethod.POST, "/auth/create-user/confirm").permitAll()
-
+						.requestMatchers("/.well-known/**").permitAll()
+						.requestMatchers("/css/**", "/js/**", "/assets/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/auth/password-reset/request").permitAll()
 						.requestMatchers(HttpMethod.GET, "/auth/password-reset/verify").permitAll()
 						.requestMatchers(HttpMethod.POST, "/auth/password-reset/confirm").permitAll()
+						.requestMatchers(HttpMethod.POST, "/oauth2/authorize").permitAll()
 
 						.requestMatchers("/send-test-email").permitAll()
 						.requestMatchers("/test-mongo-record").permitAll()
-						.requestMatchers("/error").permitAll()
-						.requestMatchers("/login").permitAll()
+						.requestMatchers("/error", "/error/**").permitAll()
+						.requestMatchers("/login", "/register", "/verify", "/reset-password").permitAll()
+						.requestMatchers("/", "/index.html", "/*.js", "/*.css", "/*.ico", "/*.png", "/*.jpg", "/*.svg")
+						.permitAll()
 						.anyRequest().authenticated())
 
 				.formLogin(formLogin -> {
 
 					formLogin.loginProcessingUrl("/login");
-					formLogin.loginPage(StrippedAuthClientBaseUrl + "/login");
+					formLogin.loginPage("/login");
 					formLogin.usernameParameter("emailOrUsername");
 					formLogin.passwordParameter("password");
 
 					formLogin.failureHandler((request, response, authentication) -> {
 						System.out.println("Login failed.");
-						response.sendRedirect(StrippedAuthClientBaseUrl + "/login?error=true");
+						response.sendRedirect("/login?error=true");
 					});
 
 					formLogin.successHandler((request, response, authentication) -> {
@@ -114,7 +110,7 @@ public class SecurityConfig {
 				})
 				.logout(logout -> {
 					logout.logoutUrl("/logout");
-					logout.logoutSuccessUrl(StrippedAuthClientBaseUrl + "/login");
+					logout.logoutSuccessUrl("/login");
 					logout.invalidateHttpSession(true);
 					logout.clearAuthentication(true);
 					logout.deleteCookies("JSESSIONID");

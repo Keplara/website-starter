@@ -12,4 +12,4 @@ RUN npm install -g @angular/cli@17.3.7
 
 RUN ng build --configuration=production
 
-CMD ["npm","run", "serve:ssr:MySite"]
+CMD ["npm","run", "serve:ssr:Keplara"]

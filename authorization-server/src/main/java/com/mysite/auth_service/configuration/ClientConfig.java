@@ -29,13 +29,13 @@ public class ClientConfig {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	@Value("${local.authClientBaseUrl}")
-	private String authClientBaseUrl;
+	@Value("${local.userClientBaseURL}")
+	private String userClientBaseURL;
 
 	@Bean
 	public RedisRegisteredClientRepository registeredClientRepository(
 			RedisTemplate<String, RegisteredClient> redisTemplate) {
-		String StrippedAuthClientBaseUrl = authClientBaseUrl.replaceAll("/+$", "");
+		String strippedUserClientBaseURL = userClientBaseURL.replaceAll("/+$", "");
 
 		RegisteredClient userAuthClient = RegisteredClient.withId(UUID.randomUUID().toString())
 				.clientId("userAuthClient")
@@ -44,9 +44,9 @@ public class ClientConfig {
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
 				.redirectUris(uris -> {
-					uris.add(StrippedAuthClientBaseUrl + "/callback");
+					uris.add(strippedUserClientBaseURL + "/api/callback");
 				})
-				.postLogoutRedirectUri(StrippedAuthClientBaseUrl + "/logout")
+				.postLogoutRedirectUri(strippedUserClientBaseURL + "/logout")
 				.scope("product:read")
 				.scope("user:read")
 				.scope("subscription:bronze")

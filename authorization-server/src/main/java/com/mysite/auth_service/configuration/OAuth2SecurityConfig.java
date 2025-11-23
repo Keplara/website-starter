@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,8 +18,6 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,7 +34,6 @@ import java.security.KeyPairGenerator;
 
 import com.mysite.auth_service.configuration.user.CustomUserDetailsService;
 import com.mysite.auth_service.configuration.validation.CustomRedirectUriValidator;
-import com.mysite.auth_service.configuration.validation.CustomScopeValidator;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -57,7 +53,7 @@ public class OAuth2SecurityConfig {
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(List.of("http://localhost:8082"));
+		configuration.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:8081"));
 		configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("*"));
 		configuration.setAllowCredentials(true);
@@ -90,13 +86,20 @@ public class OAuth2SecurityConfig {
 				.exceptionHandling((exceptions) -> {
 					exceptions.accessDeniedHandler((request, response, accessDeniedException) -> {
 						System.out.println("Access Denied.");
-						response.setStatus(HttpServletResponse.SC_OK);
+						response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 						response.getWriter().write("Access Denied.");
 						response.getWriter().flush();
 					});
-					exceptions.defaultAuthenticationEntryPointFor(
-							new LoginUrlAuthenticationEntryPoint("http://localhost:8082/login"),
-							new MediaTypeRequestMatcher(MediaType.TEXT_HTML));
+					exceptions.authenticationEntryPoint((request, response, authException) -> {
+						// Redirect unauthenticated OAuth requests to login page with original request
+						// params
+						String loginUrl = "/login";
+						String queryString = request.getQueryString();
+						if (queryString != null) {
+							loginUrl += "?" + queryString;
+						}
+						response.sendRedirect(loginUrl);
+					});
 				});
 		return http.build();
 	}
@@ -107,9 +110,8 @@ public class OAuth2SecurityConfig {
 				Consumer<OAuth2AuthorizationCodeRequestAuthenticationContext> authenticationValidator =
 						// Override default redirect_uri validator
 						new CustomRedirectUriValidator()
-								// Reuse default scope validator
-								.andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR)
-								.andThen(new CustomScopeValidator(cs));
+								// Use default scope validator
+								.andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR);
 
 				((OAuth2AuthorizationCodeRequestAuthenticationProvider) authenticationProvider)
 						.setAuthenticationValidator(authenticationValidator);

@@ -32,32 +32,32 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 
 Build image
-`docker build --rm -f ./Dockerfile -t [id].dkr.ecr.us-east-1.amazonaws.com/mysite/client .`
+`docker build --rm -f ./Dockerfile -t 010928192513.dkr.ecr.us-east-1.amazonaws.com/keplara/client .`
 
 Run image locally
-`docker run -p 80:8080 -d -t [id].dkr.ecr.us-east-1.amazonaws.com/mysite/client`
+`docker run -p 80:8080 -d -t 010928192513.dkr.ecr.us-east-1.amazonaws.com/keplara/client`
 
 ECR login before image push
-`aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin [id].dkr.ecr.us-east-1.amazonaws.com`
+`aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 010928192513.dkr.ecr.us-east-1.amazonaws.com`
 
 Push image
-`docker push [id].dkr.ecr.us-east-1.amazonaws.com/mysite/client:latest`
+`docker push 010928192513.dkr.ecr.us-east-1.amazonaws.com/keplara/client:latest`
 
 Quick start 
 `docker compose up -d web-dev --build`
 
 
 Build image
-`docker build --rm -f ./Dockerfile -t [id].dkr.ecr.us-east-1.amazonaws.com/mysite/Client .`
+`docker build --rm -f ./Dockerfile -t [id].dkr.ecr.us-east-1.amazonaws.com/keplara/Client .`
 
 Run image locally
-`docker run -p 80:8080 -d -t [id].dkr.ecr.us-east-1.amazonaws.com/mysite/Client`
+`docker run -p 80:8080 -d -t [id].dkr.ecr.us-east-1.amazonaws.com/keplara/Client`
 
 ECR login before image push
 `aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin [id].dkr.ecr.us-east-1.amazonaws.com`
 
 Push image
-`docker push [id].dkr.ecr.us-east-1.amazonaws.com/mysite/client:latest`
+`docker push [id].dkr.ecr.us-east-1.amazonaws.com/keplara/client:latest`
 
 Quick start 
 `export PORT=8080`

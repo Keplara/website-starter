@@ -13,20 +13,6 @@ export class CoreService {
   constructor(private http: HttpClient) { }
 
 
-  sendUserToAuthClient(){
-    // send over client details to auth client. 
-    const clientId = "Client"
-    // Define the URL of your auth-client's login endpoint
-    const authClientUrl = 'https://accounts.mysite.com/login';
-
-    // Prepare the redirect URL with client details (client_id and any other parameters you need)
-    const redirectUrl = `${authClientUrl}?client_id=${clientId}`;
-
-    // Redirect the user to the auth-client for login
-    window.location.href = redirectUrl;
-
-  }
-
   search(query: string) {
     this.searchQuerySubject.next(query);
 

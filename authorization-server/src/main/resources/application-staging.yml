@@ -26,6 +26,7 @@ local:
   companyName: ${COMPANY_NAME}
   userAuthClientSecret: ${USER_AUTH_CLIENT_SECRET}
   authClientBaseUrl: ${AUTH_CLIENT_BASE_URL}
+  userClientBaseURL: ${USER_CLIENT_BASE_URL}
   jwt:
     secretKey: ${JWT_KEY}
     payloadKey: ${JWT_PAYLOAD_KEY} 

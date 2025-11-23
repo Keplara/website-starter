@@ -90,8 +90,8 @@ export class NavBar implements OnInit {
     this.displayMobileSearch = !this.displayMobileSearch;
   }
 
-
-  login(){
-    window.location.href = "http://localhost:8082/login?cid=1&redirectURI=localhost:8080?message=welcome"
+  login() {
+    // Redirect to backend login endpoint - backend constructs secure OAuth URL
+    window.location.href = '/api/login';
   }
 }

@@ -5,16 +5,25 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.mysite.auth_service.configuration.exceptions.AuthApiException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 
 @ControllerAdvice
 public class CustomControllerAdvice {
+
+    @ExceptionHandler({ OAuth2AuthorizationException.class, OAuth2AuthenticationException.class })
+    public String handleOAuth2Exception(Exception ex, HttpServletRequest request) {
+        // Forward to error page
+        return "forward:/index.html"; // Angular will route to /error
+    }
 
     // Handles validation exceptions for @RequestParam, @PathVariable, etc.
     @ExceptionHandler(ConstraintViolationException.class)
