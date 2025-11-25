@@ -21,7 +21,9 @@ spring:
       repository-type: default
       expiration: 60
       host: ${REDIS_HOST}
-    timeout: 1m
+    timeout: 5m
+    tracker:
+      timeout: 30d
 local:
   companyName: ${COMPANY_NAME}
   userAuthClientSecret: ${USER_AUTH_CLIENT_SECRET}

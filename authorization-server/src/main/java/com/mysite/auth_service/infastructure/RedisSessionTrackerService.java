@@ -2,8 +2,6 @@ package com.mysite.auth_service.infastructure;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-
 import org.springframework.session.data.redis.RedisSessionRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,22 +11,18 @@ import java.util.Set;
 @Service
 public class RedisSessionTrackerService {
 
-  // private final FindByIndexNameSessionRepository<? extends Session>
-  // sessionRepository;
   private final RedisTemplate<String, Object> redisTemplate;
-  private final ValueOperations<String, Object> valueOperations;
   private static final String SESSION_TRACKER_PREFIX = "user:sessions:";
 
   private RedisSessionRepository sessionRepository;
 
-  @Value("${spring.session.timeout}")
-  private Duration SESSION_EXPIRATION; // 5 minutes in seconds
+  @Value("${spring.session.tracker.timeout:PT720H}")
+  private Duration SESSION_EXPIRATION;
 
   public RedisSessionTrackerService(RedisSessionRepository sessionRepository,
       RedisTemplate<String, Object> redisTemplate) {
     this.sessionRepository = sessionRepository;
     this.redisTemplate = redisTemplate;
-    this.valueOperations = redisTemplate.opsForValue();
   }
 
   /**
@@ -39,6 +33,7 @@ public class RedisSessionTrackerService {
       throw new IllegalArgumentException("userId and sessionId cannot be null");
     }
     redisTemplate.opsForSet().add(SESSION_TRACKER_PREFIX + userId, sessionId);
+    assert SESSION_EXPIRATION != null;
     redisTemplate.expire(SESSION_TRACKER_PREFIX + userId, SESSION_EXPIRATION);
   }
 
@@ -61,6 +56,8 @@ public class RedisSessionTrackerService {
         sessionRepository.deleteById(sessionId.toString());
       });
     }
+
+    // delete tokens
 
     redisTemplate.delete(key);
     return true;

@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AuthorizationCodeRequestAuthenticationContext;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AuthorizationCodeRequestAuthenticationProvider;
@@ -63,18 +64,22 @@ public class OAuth2SecurityConfig {
 	}
 
 	@Bean
-	SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, CustomUserDetailsService cs)
+	SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, CustomUserDetailsService cs,
+			OAuth2AuthorizationService authorizationService)
 			throws Exception {
+		System.out.println("=== OAuth2SecurityConfig: Injected OAuth2AuthorizationService: " 
+			+ authorizationService.getClass().getName() + " ===");
+		
 		OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
 				.authorizationServer();
 		http
 				.cors(Customizer.withDefaults())
 				.csrf(crsf -> crsf.disable())
 				.authorizeHttpRequests((req) -> req
-						.requestMatchers("/test-unauthenticated").permitAll()
 						.anyRequest().authenticated())
 				.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
 				.with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
+						.authorizationService(authorizationService)
 						.authorizationEndpoint(authorizationEndpoint -> {
 							authorizationEndpoint
 									.authenticationProviders(configureAuthenticationValidator(cs));
@@ -107,11 +112,8 @@ public class OAuth2SecurityConfig {
 	private Consumer<List<AuthenticationProvider>> configureAuthenticationValidator(CustomUserDetailsService cs) {
 		return (authenticationProviders) -> authenticationProviders.forEach((authenticationProvider) -> {
 			if (authenticationProvider instanceof OAuth2AuthorizationCodeRequestAuthenticationProvider) {
-				Consumer<OAuth2AuthorizationCodeRequestAuthenticationContext> authenticationValidator =
-						// Override default redirect_uri validator
-						new CustomRedirectUriValidator()
-								// Use default scope validator
-								.andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR);
+				Consumer<OAuth2AuthorizationCodeRequestAuthenticationContext> authenticationValidator = new CustomRedirectUriValidator()
+						.andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR);
 
 				((OAuth2AuthorizationCodeRequestAuthenticationProvider) authenticationProvider)
 						.setAuthenticationValidator(authenticationValidator);

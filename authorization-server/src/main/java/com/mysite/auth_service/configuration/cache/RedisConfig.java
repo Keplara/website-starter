@@ -9,6 +9,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.data.redis.RedisSessionExpirationStore;
@@ -61,6 +62,17 @@ public class RedisConfig {
     @Bean
     public RedisTemplate<String, PendingUser> redisPendingUserTemplate(JedisConnectionFactory jedisConnectionFactory) {
         RedisTemplate<String, PendingUser> template = new RedisTemplate<>();
+        template.setConnectionFactory(jedisConnectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.afterPropertiesSet();
+
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, OAuth2Authorization> redisOAuth2AuthorizationTemplate(
+            JedisConnectionFactory jedisConnectionFactory) {
+        RedisTemplate<String, OAuth2Authorization> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.afterPropertiesSet();

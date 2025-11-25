@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
     selector: 'app-login',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule], // Import CommonModule and FormsModule
+    imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule],
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.scss']
 })
@@ -18,7 +19,12 @@ export class LoginComponent {
   redirectUri: string = '';
   client_id: string = '';
 
-  constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute){
+  constructor(
+    private http: HttpClient, 
+    private router: Router, 
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
+  ){
     // Get redirect_uri from query params
     this.route.queryParams.subscribe(params => {
       this.redirectUri = params['redirect_uri'];
@@ -40,35 +46,45 @@ export class LoginComponent {
 
   public onSubmit() {
     if (this.email && this.password) {
-      // Prepare query parameters
-      const params = new URLSearchParams();
-      params.set('emailOrUsername', this.email);
-      params.set('password', this.password);
+      // Prepare form data
+      const formData = new URLSearchParams();
+      formData.set('emailOrUsername', this.email);
+      formData.set('password', this.password);
 
-      // Make a POST request to the login endpoint
-      // Backend will automatically handle OAuth authorization if there's a pending request
-      this.http.post(`/login?${params.toString()}`, {}, { 
-        responseType: 'text',
-        observe: 'response'
+      // Preserve OAuth query params in URL
+      const queryParams = this.route.snapshot.queryParams;
+      const queryString = new URLSearchParams(queryParams).toString();
+      const url = queryString ? `/login?${queryString}` : '/login';
+
+      // Make POST request with headers indicating AJAX call
+      this.http.post<any>(url, formData.toString(), { 
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
       }).subscribe({
         next: (response) => {
-          console.log('Login successful:', response.body);
-          
-          // Check if backend sent a redirect (OAuth flow)
-          const redirectUrl = response.headers.get('X-Redirect-URL');
-          if (redirectUrl) {
-            window.location.href = redirectUrl; // Complete OAuth flow
-          } else if (this.redirectUri) {
-            // If OAuth params present but no redirect header, complete manually
-            window.location.href = this.redirectUri;
+          console.log('Login successful:', response);
+            console.log('Redirect URI:', response.redirectUrl);
+          // Check if backend returned a redirect URL (OAuth flow)
+          if (response.redirectUrl) {
+            // Navigate to the OAuth authorization endpoint
+            window.location.href = response.redirectUrl;
           } else {
-            // Normal login, go to home
+            // Normal login, navigate to home
             this.router.navigate(['/']);
           }
         },
         error: (error: any) => {
           console.error('Login failed:', error);
-          // Error will be handled by the HTTP interceptor
+          this.password = ''; // Clear password field
+          this.snackBar.open('Invalid email or password. Please try again.', 'Dismiss', {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['error-snackbar'],
+            politeness: 'assertive'
+          });
         }
       });
     }

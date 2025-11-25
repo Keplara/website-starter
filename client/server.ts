@@ -60,13 +60,32 @@ export function app(): express.Express {
 
   // OAuth Login Endpoint - Initiates OAuth flow
   server.get('/api/login', (req, res) => {
-    // Generate CSRF token (state parameter)
+    // Check if user already has a valid access token
+    const existingToken = (req.session as any).accessToken;
+    if (existingToken) {
+      // User is already authenticated, redirect to home
+      return res.redirect('/?login=success');
+    }
+
+    // Check if there's already an OAuth flow in progress
+    const existingState = (req.session as any).oauthState;
+    const existingVerifier = (req.session as any).codeVerifier;
+    
+    if (existingState && existingVerifier) {
+      // OAuth flow already in progress - don't allow starting a new one
+      // This prevents PKCE mismatch when user clicks login multiple times
+      console.log('OAuth flow already in progress, please wait for callback');
+      return res.status(400).send('OAuth authorization already in progress. Please wait for the callback or try again later.');
+    }
+
+    // Generate fresh CSRF token (state parameter) and PKCE challenge
     const state = crypto.randomBytes(32).toString('hex');
     const { codeVerifier, codeChallenge } = generatePKCE();
 
-    // Store both state and codeVerifier in session for verification
+    // Store state, codeVerifier, and codeChallenge in session for verification
     (req.session as any).oauthState = state;
     (req.session as any).codeVerifier = codeVerifier; // Needed for PKCE token exchange
+    (req.session as any).codeChallenge = codeChallenge; // For debugging PKCE mismatches
 
     // Construct OAuth authorization URL with server-controlled parameters
     const authUrl = new URL(OAUTH_CONFIG.authServerUrl);
@@ -84,30 +103,67 @@ export function app(): express.Express {
   // OAuth Callback Endpoint - Exchanges code for tokens
   server.get('/api/callback', async (req, res) => {
     console.log('Received OAuth callback');
-    const { code, state } = req.query;
+    const { code, state, error, error_description } = req.query;
     console.log('Query params:', req.query);
+
+    // Check for OAuth errors from authorization server
+    if (error) {
+      console.error('OAuth authorization error:', error, error_description);
+      // Clear session data on error
+      delete (req.session as any).oauthState;
+      delete (req.session as any).codeVerifier;
+      delete (req.session as any).codeChallenge;
+      return res.redirect(`/?login=error&error=${error}`);
+    }
 
     // Verify state parameter (CSRF protection)
     if (!state || state !== (req.session as any).oauthState) {
+      console.error('State mismatch or missing:', { received: state, expected: (req.session as any).oauthState });
       return res.status(400).send('Invalid state parameter');
     }
 
     // Get codeVerifier from session for PKCE
     const codeVerifier = (req.session as any).codeVerifier;
+    const storedChallenge = (req.session as any).codeChallenge;
     
     if (!codeVerifier) {
-      return res.status(400).send('Missing PKCE code verifier');
+      console.error('Missing codeVerifier in session');
+      return res.status(400).send('Missing PKCE code verifier - authorization may have already been processed');
     }
 
-    // Clear the state and codeVerifier from session
-    delete (req.session as any).oauthState;
-    delete (req.session as any).codeVerifier;
+    console.log('Session PKCE data:', {
+      storedChallenge,
+      storedVerifier: codeVerifier,
+      state: (req.session as any).oauthState
+    });
 
     if (!code) {
       return res.status(400).send('No authorization code received');
     }
 
+    // CRITICAL: Clear session data IMMEDIATELY to prevent code reuse
+    // This must happen BEFORE the token exchange to prevent race conditions
+    delete (req.session as any).oauthState;
+    delete (req.session as any).codeVerifier;
+    delete (req.session as any).codeChallenge;
+
     try {
+      // Prepare token request body
+      const tokenRequestBody = new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: code as string,
+        redirect_uri: OAUTH_CONFIG.redirectUri,
+        code_verifier: codeVerifier // Send PKCE verifier
+      });
+
+      console.log('Token request details:', {
+        url: OAUTH_CONFIG.tokenUrl,
+        clientId: OAUTH_CONFIG.clientId,
+        redirectUri: OAUTH_CONFIG.redirectUri,
+        codeVerifier: codeVerifier,
+        codeLength: (code as string).length
+      });
+
       // Exchange authorization code for access token (with PKCE)
       const tokenResponse = await fetch(OAUTH_CONFIG.tokenUrl, {
         method: 'POST',
@@ -115,16 +171,17 @@ export function app(): express.Express {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Basic ' + Buffer.from(`${OAUTH_CONFIG.clientId}:${OAUTH_CONFIG.clientSecret}`).toString('base64')
         },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          code: code as string,
-          redirect_uri: OAUTH_CONFIG.redirectUri,
-          code_verifier: codeVerifier // Send PKCE verifier
-        })
+        body: tokenRequestBody
       });
 
       if (!tokenResponse.ok) {
-        throw new Error('Token exchange failed');
+        const errorBody = await tokenResponse.text();
+        console.error('Token exchange failed:', {
+          status: tokenResponse.status,
+          statusText: tokenResponse.statusText,
+          body: errorBody
+        });
+        throw new Error(`Token exchange failed: ${tokenResponse.status} ${errorBody}`);
       }
 
       const tokens = await tokenResponse.json();

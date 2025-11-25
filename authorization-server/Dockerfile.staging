@@ -30,3 +30,4 @@ COPY --from=build /app/build/libs/*.jar app.jar
 COPY entrypoint-staging.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
+# // make another build stage for docker containers and fix the launch config and add proxy to auth server.

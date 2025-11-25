@@ -4,6 +4,10 @@
     padding: 1em;
     border: 1px solid #ccc;
     border-radius: 5px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
   
   .form-group {
@@ -17,4 +21,13 @@
   
   .btn {
     width: 100%;
+  }
+
+  ::ng-deep .error-snackbar {
+    background-color: #d32f2f !important;
+    color: white !important;
+    
+    .mat-mdc-button.mat-mdc-snack-bar-action {
+      color: white !important;
+    }
   }
