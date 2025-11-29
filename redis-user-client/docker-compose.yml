@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  redis-user-client-development:
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-user-client-development
+    ports:
+      - "6341:6379"
+    volumes:
+      - redis-user-client-development-data:/data
+  redis-user-client-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-user-client-staging
+    ports:
+      - "6342:6379"
+    volumes:
+      - redis-user-client-staging-data:/data
+  redis-user-client-production:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-user-client-production
+    ports:
+      - "6343:6379"
+    volumes:
+      - redis-user-client-production-data:/data
+
+volumes:
+  redis-user-client-development-data:
+  redis-user-client-production-data:
+  redis-user-client-staging-data:

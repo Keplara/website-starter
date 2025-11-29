@@ -15,13 +15,22 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.security.web.server.authentication.logout.DelegatingServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.SecurityContextServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.WebSessionServerLogoutHandler;
 
 import com.mysite.auth_service.configuration.user.CustomUserDetailsService;
 import com.mysite.auth_service.configuration.user.UsernamePasswordAuthenticationProvider;
+import com.mysite.auth_service.infastructure.RedisOAuth2Service;
 import com.mysite.auth_service.infastructure.RedisSessionTrackerService;
 import com.mysite.auth_service.repository.UserRepository;
 
@@ -62,7 +71,10 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AuthenticationManagerBuilder authManager,
 			CustomUserDetailsService userDetailsService, PasswordEncoder sharedPasswordEncoder,
-			RedisSessionTrackerService redisSessionTrackerService) throws Exception {
+			RedisSessionTrackerService redisSessionTrackerService,
+			RedisOAuth2Service authorizationService)
+			throws Exception {
+
 		return http
 				.sessionManagement(
 						sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
@@ -151,9 +163,22 @@ public class SecurityConfig {
 					logout.clearAuthentication(true);
 					logout.deleteCookies("JSESSIONID");
 					logout.logoutSuccessHandler((request, response, authentication) -> {
-						String userId = authentication.getName();
-						String sessionId = request.getSession().getId();
-						redisSessionTrackerService.deregisterSession(userId, sessionId);
+						String authHeader = request.getHeader("Authorization");
+
+						// If Bearer token is present, revoke the token
+						if (authHeader != null && authHeader.startsWith("Bearer ")) {
+							String token = authHeader.substring("Bearer ".length());
+							OAuth2Authorization authorization = authorizationService.findByToken(token, null);
+							System.out.println("Revoking token for logout: " + token);
+							if (authorization != null) {
+								authorizationService.remove(authorization);
+							}
+						}
+						String userId = authentication != null ? authentication.getName() : null;
+						String sessionId = request.getSession() != null ? request.getSession().getId() : null;
+						if (userId != null && sessionId != null) {
+							redisSessionTrackerService.deregisterSession(userId, sessionId);
+						}
 						System.out.println("Logout Succeeded.");
 						response.setStatus(HttpServletResponse.SC_OK);
 						response.getWriter().write("Logout successful");

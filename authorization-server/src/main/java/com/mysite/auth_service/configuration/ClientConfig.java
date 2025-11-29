@@ -46,7 +46,7 @@ public class ClientConfig {
 				.redirectUris(uris -> {
 					uris.add(strippedUserClientBaseURL + "/api/callback");
 				})
-				.postLogoutRedirectUri(strippedUserClientBaseURL + "/logout")
+				.postLogoutRedirectUri(strippedUserClientBaseURL)
 				.scope("product:read")
 				.scope("user:read")
 				.scope("subscription:bronze")
