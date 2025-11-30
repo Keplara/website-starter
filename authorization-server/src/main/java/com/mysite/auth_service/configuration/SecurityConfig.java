@@ -162,9 +162,16 @@ public class SecurityConfig {
 					logout.invalidateHttpSession(true);
 					logout.clearAuthentication(true);
 					logout.deleteCookies("JSESSIONID");
+
 					logout.logoutSuccessHandler((request, response, authentication) -> {
 						String authHeader = request.getHeader("Authorization");
-
+						if (authHeader == null) {
+							response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+							response.setContentType("application/json");
+							response.setCharacterEncoding("UTF-8");
+							response.getWriter().write("{\"success\":\"" + false + "\"}");
+							response.getWriter().flush();
+						}
 						// If Bearer token is present, revoke the token
 						if (authHeader != null && authHeader.startsWith("Bearer ")) {
 							String token = authHeader.substring("Bearer ".length());
@@ -179,10 +186,16 @@ public class SecurityConfig {
 						if (userId != null && sessionId != null) {
 							redisSessionTrackerService.deregisterSession(userId, sessionId);
 						}
-						System.out.println("Logout Succeeded.");
-						response.setStatus(HttpServletResponse.SC_OK);
-						response.getWriter().write("Logout successful");
-						response.getWriter().flush();
+						if (authHeader != null) {
+
+							System.out.println("Logout Succeeded.");
+							response.setStatus(HttpServletResponse.SC_OK);
+							response.setContentType("application/json");
+							response.setCharacterEncoding("UTF-8");
+							response.getWriter().write("{\"success\":\"" + true + "\"}");
+							response.getWriter().flush();
+						}
+
 					});
 				})
 				.build();

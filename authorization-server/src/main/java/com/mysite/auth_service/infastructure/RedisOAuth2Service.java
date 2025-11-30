@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  */
 @Service
 public class RedisOAuth2Service implements OAuth2AuthorizationService {
-
+  
   private static final Logger log = LoggerFactory.getLogger(RedisOAuth2Service.class);
 
   private static final String AUTHORIZATION_PREFIX = "oauth2:authorization:";
