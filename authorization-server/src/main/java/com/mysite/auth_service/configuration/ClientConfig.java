@@ -55,7 +55,7 @@ public class ClientConfig {
 				.scope(OidcScopes.PROFILE)
 				.tokenSettings(TokenSettings.builder()
 						.authorizationCodeTimeToLive(Duration.ofMinutes(2))
-						.accessTokenTimeToLive(Duration.ofMinutes(2))
+						.accessTokenTimeToLive(Duration.ofMinutes(30))
 						.refreshTokenTimeToLive(Duration.ofDays(30))
 						.reuseRefreshTokens(false)
 						.build())

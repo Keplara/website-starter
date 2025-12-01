@@ -92,6 +92,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/auth/password-reset/verify").permitAll()
 						.requestMatchers(HttpMethod.POST, "/auth/password-reset/confirm").permitAll()
 						.requestMatchers(HttpMethod.POST, "/oauth2/authorize").permitAll()
+						.requestMatchers("/.well-known/jwks.json").permitAll()
 
 						.requestMatchers("/send-test-email").permitAll()
 						.requestMatchers("/test-mongo-record").permitAll()
