@@ -1,0 +1,21 @@
+@if (imageUrl) {
+    <div [ngStyle]="{
+      'width': width,
+      'height': height,
+      'background-image': 'url(' + imageUrl + ')',
+      'position': 'absolute',
+      'background-position': backgroundImagePosition,
+      'background-repeat': 'no-repeat',
+      'background-size': 'cover'
+    }">
+    </div>
+}
+  @else {
+    <div [ngStyle]="{
+      'width': width,
+      'height': height,
+      'background': backgroundColor,
+      'position': 'absolute'
+    }">
+    </div>
+  }

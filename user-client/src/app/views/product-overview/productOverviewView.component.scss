@@ -1,0 +1,78 @@
+
+.product-overview {
+    top: 80px;
+    position: relative;
+    padding-bottom: 60px;
+    flex-direction: column;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    .example-card {
+        max-width: 360px;
+    }
+
+    .example-header-image {
+        background-image: url('https://material.angular.io/assets/img/examples/shiba1.jpg');
+        background-size: cover;
+    }
+    .product-card-wrapper {
+        font-family: "Caveat", cursive !important;
+        color: black;
+        justify-content: center;    width: 100%;
+        height: auto;
+        display: flex;
+        box-sizing: border-box;
+        max-width: 100%;
+        mat-card-title {
+            text-align: center;
+        }
+    }
+    .title{
+        width: 100%;
+        text-align: center;
+        display: block;
+    }
+
+    .table-fact-wrapper {
+        margin-top: 100px;
+        .nutrition-label-wrapper {
+            width: 100%;
+            height: auto;
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+        .ingredients-table-wrapper {
+            width: 90%;
+            margin: 0 auto;
+            height: auto;
+        }
+    }
+}
+
+@media (min-width: 968px) {
+    .product-overview {
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 20px;
+        .table-fact-wrapper {
+            width: 100%;
+        }
+        .flex-container {
+            .table-fact-wrapper {margin-top:  0px;}
+            max-width: 48%;
+            .ingredients-table-wrapper {
+                max-width: 700px;
+            }
+        }
+        top: 80px;
+        position: relative;
+        img {
+            max-height: 400px;
+            width: auto;
+            height: auto;
+            max-width: 100%;
+          }
+    }
+  }
+  

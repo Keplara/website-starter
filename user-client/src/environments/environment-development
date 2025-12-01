@@ -1,0 +1,5 @@
+export const environment = {
+    title: 'MySite Development',
+    production: false,
+    clientBaseURL: 'https://www.development.mysite.com',
+};

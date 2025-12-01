@@ -1,0 +1,89 @@
+@use '@angular/material' as mat;
+@include mat.core();
+@import 'styles.scss';
+
+@font-face {
+  font-family: "Caveat";
+  src: url("assets/Caveat/Caveat-VariableFont_wght.ttf") format("truetype");
+  font-weight: 700;  /* Specifies the font weight (700 for bold) */
+  font-style: normal;  /* Optional, specify font style if needed (e.g., italic) */
+}
+
+// Define custom font properties
+$primaryFontFamily: 'Caveat', cursive;
+$primaryFontColor: black;
+
+$secondaryFontFamily: 'Georgia', serif;
+$secondaryFontColor: white;
+
+// Set default font and color for body and text elements
+body, p, div, h1, h2, h3, h4, h5, h6 {
+  font-family: $primaryFontFamily !important; // Set your default font family
+  color: $primaryFontColor;
+}
+
+$custom-theme-primary: mat.define-palette(mat.$indigo-palette);
+$custom-theme-accent: mat.define-palette(mat.$brown-palette);
+$custom-theme-warn: mat.define-palette(mat.$red-palette);
+
+$custom-theme: mat.define-light-theme((
+  color: (
+    primary: $custom-theme-primary,
+    accent: $custom-theme-accent,
+    warn: $custom-theme-warn,
+  )
+));
+
+// Define CSS variables for theme colors
+:root {
+  // Primary color palette variables
+  --primary-100: #{mat.get-color-from-palette($custom-theme-primary, 100)};
+  --primary-200: #{mat.get-color-from-palette($custom-theme-primary, 200)};
+  --primary-300: #{mat.get-color-from-palette($custom-theme-primary, 300)};
+  --primary-400: #{mat.get-color-from-palette($custom-theme-primary, 400)};
+  --primary-500: #{mat.get-color-from-palette($custom-theme-primary, 500)};
+  --primary-600: #{mat.get-color-from-palette($custom-theme-primary, 600)};
+  --primary-700: #{mat.get-color-from-palette($custom-theme-primary, 700)};
+  --primary-800: #{mat.get-color-from-palette($custom-theme-primary, 800)};
+
+  // Primary color palette transparent variables
+  --primary-100-transparent: #{rgba(mat.get-color-from-palette($custom-theme-primary, 100), 0.3)};
+  --primary-200-transparent: #{rgba(mat.get-color-from-palette($custom-theme-primary, 200), 0.3)};
+  --primary-300-transparent: #{rgba(mat.get-color-from-palette($custom-theme-primary, 300), 0.3)};
+  --primary-400-transparent: #{rgba(mat.get-color-from-palette($custom-theme-primary, 400), 0.3)};
+  --primary-500-transparent: #{rgba(mat.get-color-from-palette($custom-theme-primary, 500), 0.3)};
+  --primary-600-transparent: #{rgba(mat.get-color-from-palette($custom-theme-primary, 600), 0.3)};
+  --primary-700-transparent: #{rgba(mat.get-color-from-palette($custom-theme-primary, 700), 0.3)};
+  --primary-800-transparent: #{rgba(mat.get-color-from-palette($custom-theme-primary, 800), 0.3)};
+
+  // Accent color palette variables
+  --accent-100: #{mat.get-color-from-palette($custom-theme-accent, 100)};
+  --accent-200: #{mat.get-color-from-palette($custom-theme-accent, 200)};
+  --accent-300: #{mat.get-color-from-palette($custom-theme-accent, 300)};
+  --accent-400: #{mat.get-color-from-palette($custom-theme-accent, 400)};
+  --accent-500: #{mat.get-color-from-palette($custom-theme-accent, 500)};
+  --accent-600: #{mat.get-color-from-palette($custom-theme-accent, 600)};
+  --accent-700: #{mat.get-color-from-palette($custom-theme-accent, 700)};
+  --accent-800: #{mat.get-color-from-palette($custom-theme-accent, 800)};
+
+  // Accent color palette transparent variables
+  --accent-100-transparent: #{rgba(mat.get-color-from-palette($custom-theme-accent, 100), 0.3)};
+  --accent-200-transparent: #{rgba(mat.get-color-from-palette($custom-theme-accent, 200), 0.3)};
+  --accent-300-transparent: #{rgba(mat.get-color-from-palette($custom-theme-accent, 300), 0.3)};
+  --accent-400-transparent: #{rgba(mat.get-color-from-palette($custom-theme-accent, 400), 0.3)};
+  --accent-500-transparent: #{rgba(mat.get-color-from-palette($custom-theme-accent, 500), 0.3)};
+  --accent-600-transparent: #{rgba(mat.get-color-from-palette($custom-theme-accent, 600), 0.3)};
+  --accent-700-transparent: #{rgba(mat.get-color-from-palette($custom-theme-accent, 700), 0.3)};
+  --accent-800-transparent: #{rgba(mat.get-color-from-palette($custom-theme-accent, 800), 0.3)};
+
+  // Font color and family variables
+  --primary-font-color: $primaryFontColor;
+  --secondary-font-color: $secondaryFontColor;
+  --primary-font-family: $primaryFontFamily;
+  --secondary-font-family: $secondaryFontFamily;
+}
+
+html {
+  @include mat.form-field-density(-2);
+  @include mat.all-component-themes($custom-theme);
+}

@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile 
+    ports:
+      - "80:${PORT}"
+    environment:
+      PORT: ${PORT}
+  web-staging:
+    build: 
+      context: .
+      dockerfile: Dockerfile.staging
+    ports:
+      - "8080:${PORT}"
+    environment:
+      PORT: ${PORT}
+  web-dev:
+    build: 
+      dockerfile: Dockerfile.dev
+      context: .
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      PORT: ${PORT}
+    volumes:
+      - ./src:/app/src

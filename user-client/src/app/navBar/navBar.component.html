@@ -1,0 +1,54 @@
+<mat-toolbar [ngStyle]="{'background-color': backgroundColor, 'position': position, 'z-index':'+10' }">
+  <a class="logo" style="width: 40px; height: 40px;">
+    <img style="width: inherit; height: inherit;" src="assets/logo.png" />
+  </a>
+  <span style="padding-left: 20px; font-size: 28px;">
+    <a routerLink="/" style="text-decoration: none; color: white;">MySite</a>
+  </span>
+  @if (showSearchbar) {
+    <!-- if search bar is mobile show just the search icon. -->
+    @if(!isMobile){
+      <div style="height: 60%;">
+        <search-box [cStyles]="'padding-left: 50px; display:flex;'" ></search-box>
+      </div>
+    }
+     @else {
+      <!-- if show search bar is true-->
+      @if (!isHomePage){
+      <div [ngStyle]="{'background-color': backgroundColor}"
+        style="display:flex; align-items:center; height: 59px; border-top: 1px solid white; background-color: aquamarine; position: absolute; left: 0px; top: 56px; width: 100%;">
+        <div style="height: 60%; width: 90%; margin: 0 auto;">
+          <search-box [cStyles]="'width: 100%;'" >
+          </search-box>
+        </div>
+      </div>
+      }
+    }
+
+
+    @if (searchResults.length > 0) {
+    <mat-list *ngIf="!isMobile" class="search-results-container">
+      @for (product of searchResults; track product) {
+      <productListItem [product]="product"> </productListItem>
+      }
+    </mat-list>
+    <mat-list *ngIf="isMobile" class="mobile-search-results-container">
+      @for (product of searchResults; track product) {
+      <productListItem [product]="product"> </productListItem>
+      }
+    </mat-list>
+    }
+  }
+  <span style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+    <span *ngIf="isLoggedIn && userDetails" style="font-size: 18px; color: white; margin-right: 8px;">
+      {{ userDetails.name }}
+    </span>
+    <!-- Example: Feature button visible only if user has 'admin' role -->
+    <button *ngIf="isLoggedIn && hasRole('admin')" mat-button>Admin Panel</button>
+    <!-- Example: Feature button visible only if user has 'read:products' scope -->
+    <button *ngIf="isLoggedIn && hasScope('product:read')" mat-button>Products</button>
+    <!-- Add more feature buttons as needed, using hasScope/hasRole -->
+    <a *ngIf="!isLoggedIn" (click)="login()">Login</a>
+    <a *ngIf="isLoggedIn" (click)="logout()">Logout</a>
+  </span>
+</mat-toolbar>
