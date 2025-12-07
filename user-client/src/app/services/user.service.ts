@@ -12,7 +12,7 @@ export class UserService {
   private scopes: string[] = [];
   private roles: string[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Fetches user details from /api/resource/user and logs/checks session state on error.

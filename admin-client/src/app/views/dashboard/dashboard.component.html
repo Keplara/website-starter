@@ -1,0 +1,22 @@
+<div class="charts-wrapper dynamic-charts">
+  <div class="chart-card pie-chart-card">
+    <h3>Overview (Pie Chart)</h3>
+    <div class="chart-canvas-wrapper">
+      <canvas baseChart
+        [data]="pieChartData"
+        [type]="pieChartType"
+        [legend]="true">
+      </canvas>
+    </div>
+  </div>
+  <div class="chart-card bar-chart-card">
+    <h3>Statistics (Bar Chart)</h3>
+    <div class="chart-canvas-wrapper">
+      <canvas baseChart
+        [data]="barChartData"
+        [type]="barChartType"
+        [legend]="true">
+      </canvas>
+    </div>
+  </div>
+</div>

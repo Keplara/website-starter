@@ -1,0 +1,49 @@
+<mat-sidenav-container style="height: 100%; min-height: 400px;">
+	<mat-sidenav mode="side" opened style="width: 280px; background: #fafafa; border-right: 1px solid #e0e0e0;">
+		<div style="padding: 16px 8px 8px 16px;">
+			<mat-form-field appearance="outline" style="width: 100%;">
+				<mat-label>Search Users</mat-label>
+				<input matInput [(ngModel)]="search" placeholder="Type to filter...">
+			</mat-form-field>
+		</div>
+		<mat-selection-list [multiple]="false" style="width: 100%;">
+			<mat-list-option *ngFor="let user of filteredUsers()" [selected]="selectedUser?.id === user.id" (click)="selectUser(user)">
+				<img matListItemAvatar [src]="user.avatar" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover;" />
+				<span>{{ user.firstname }} {{ user.lastname }}</span>
+				<span style="color: #888; font-size: 0.9em;">({{ user.username }})</span>
+			</mat-list-option>
+		</mat-selection-list>
+		<div *ngIf="selectedUser" style="margin-top: 24px; padding: 0 16px;">
+			<div style="display: flex; align-items: center; gap: 12px;">
+				<img [src]="selectedUser.avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" />
+				<div>
+					<div style="font-weight: 600;">{{ selectedUser.firstname }} {{ selectedUser.lastname }}</div>
+					<div style="color: #888; font-size: 0.9em;">{{ selectedUser.username }}</div>
+				</div>
+			</div>
+			<mat-chip-set style="margin-top: 8px;">
+				<mat-chip *ngFor="let role of selectedUser.roles" color="primary" selected>{{ role }}</mat-chip>
+			</mat-chip-set>
+		</div>
+	</mat-sidenav>
+	<mat-sidenav-content style="padding: 32px;">
+		<h3>Roles & Permissions Tree</h3>
+		<mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+			<mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+				<button mat-icon-button disabled></button>
+				{{node.item}}
+			</mat-tree-node>
+			<mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+				<button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.item">
+					<mat-icon class="mat-icon-rtl-mirror">
+						{{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+					</mat-icon>
+				</button>
+				{{node.item}}
+				<ng-container *ngIf="node.isLoading">
+					<mat-progress-bar mode="indeterminate" class="example-tree-progress-bar"></mat-progress-bar>
+				</ng-container>
+			</mat-tree-node>
+		</mat-tree>
+	</mat-sidenav-content>
+</mat-sidenav-container>

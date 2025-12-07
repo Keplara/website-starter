@@ -1,0 +1,65 @@
+.nutrition-label {
+    width: 80%;
+    margin: 0 auto;
+    border: 2px solid black;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+    border-bottom: 10px solid black;
+    margin-bottom: 10px;
+  }
+  
+  .serving-info {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .amount-per-serving {
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .calories {
+    font-size: 32px;
+    font-weight: bold;
+  }
+  
+  .calories span {
+    float: right;
+  }
+  
+  .table {
+    width: 100%;
+    font-size: 14px;
+  }
+  
+  .indent {
+    padding-left: 10px;
+  }
+  
+  .divider {
+    border-top: 2px solid black;
+    margin: 10px 0;
+  }
+  
+  .divider.thick {
+    border-top: 5px solid black;
+  }
+  
+  .micronutrients {
+    font-size: 14px;
+  }
+  
+  .footnote {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  @media (max-width: 768px) {
+
+  }
+  

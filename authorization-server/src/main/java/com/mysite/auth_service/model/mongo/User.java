@@ -34,6 +34,8 @@ public class User {
 
   private Collection<? extends GrantedAuthority> authorities;
 
+  private java.util.List<String> groupIds;
+
   private Boolean expired;
   private Boolean accountLocked;
   private Boolean credentialsExpired;
@@ -102,6 +104,14 @@ public class User {
 
   public String getUsername() {
     return this.username;
+  }
+
+  public java.util.List<String> getGroupIds() {
+    return this.groupIds;
+  }
+
+  public void setGroupIds(java.util.List<String> groupIds) {
+    this.groupIds = groupIds;
   }
 
 }

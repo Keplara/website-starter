@@ -10,14 +10,14 @@ export const resourceAuthInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const http = inject(HttpClient);
-  return http.get<{ loggedIn: boolean, accessTokenExpired: boolean }>('/api/check-session', { withCredentials: true }).pipe(
+  return http.get<{ loggedIn: boolean, accessTokenExpired: boolean }>('/check-session', { withCredentials: true }).pipe(
     switchMap(session => {
       if (session.loggedIn && !session.accessTokenExpired) {
         // Token is valid, proceed
         return next(req);
       } else if (session.loggedIn && session.accessTokenExpired) {
         // Try to refresh token
-        return http.post('/api/refresh', {}, { withCredentials: true }).pipe(
+        return http.post('/oauth/refresh', {}, { withCredentials: true }).pipe(
           switchMap(() => next(req)),
           catchError((refreshErr: HttpErrorResponse) => {
             // Only throw error, let app handle navigation

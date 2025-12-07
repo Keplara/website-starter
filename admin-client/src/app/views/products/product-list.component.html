@@ -1,0 +1,29 @@
+<h3>Product List</h3>
+<mat-selection-list style="padding: 15px;">
+  <ng-container *ngFor="let product of products; let last = last">
+    <mat-list-option [disableRipple]="true" style="padding: 0;">
+      <div class="product-list-item" style="display: flex; align-items: center; width: 100%; padding: 20px 0;">
+        <img matListItemAvatar [src]="product.avatar || 'https://material.angular.dev/assets/img/examples/shiba1.jpg'" style="width: 48px; height: 48px; border-radius: 50%; margin-right: 16px; object-fit: cover;" />
+        <div style="flex: 1 1 auto;">
+          <div style="font-weight: 600; font-size: 1.1em;">{{ product.name }} — {{ product.sku }} (${{ product.price }})</div>
+          <div style="font-size: 0.95em; color: #666; margin-top: 2px;">
+            Created: {{ product.createdOn }} by {{ product.createdBy }} | Modified: {{ product.modifiedOn }} by {{ product.modifiedBy }}
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-left: 16px;">
+          <a [routerLink]="[product.sku, 'edit']">
+            <button mat-button color="primary">Edit</button>
+          </a>
+          <button mat-button color="warn" (click)="confirmDelete(product)">Delete</button>
+        </div>
+      </div>
+    </mat-list-option>
+    <mat-divider *ngIf="!last" style="height: 3px; background: #bdbdbd; opacity: 1;"></mat-divider>
+  </ng-container>
+</mat-selection-list>
+<style>
+.product-list-item:hover {
+  background: #f5f5f5;
+  transition: background 0.2s;
+}
+</style>

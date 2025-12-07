@@ -7,6 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -33,6 +34,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.KeyPairGenerator;
 
+import com.mysite.auth_service.configuration.user.AdminUserDetails;
 import com.mysite.auth_service.configuration.user.CustomUserDetailsService;
 import com.mysite.auth_service.configuration.validation.CustomRedirectUriValidator;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -67,9 +69,9 @@ public class OAuth2SecurityConfig {
 	SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, CustomUserDetailsService cs,
 			OAuth2AuthorizationService authorizationService)
 			throws Exception {
-		System.out.println("=== OAuth2SecurityConfig: Injected OAuth2AuthorizationService: " 
-			+ authorizationService.getClass().getName() + " ===");
-		
+		System.out.println("=== OAuth2SecurityConfig: Injected OAuth2AuthorizationService: "
+				+ authorizationService.getClass().getName() + " ===");
+
 		OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
 				.authorizationServer();
 		http
@@ -126,24 +128,33 @@ public class OAuth2SecurityConfig {
 		return context -> {
 			if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
 				context.getClaims().claims(claims -> {
+					Authentication principal = context.getPrincipal();
 
 					// Extract roles (ROLE_ prefixed authorities)
-					Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
+					Set<String> roles = AuthorityUtils.authorityListToSet(principal.getAuthorities())
 							.stream()
 							.filter(auth -> auth.startsWith("ROLE_"))
 							.map(auth -> auth.replaceFirst("^ROLE_", ""))
 							.collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
 
 					// Extract all user scopes (SCOPE_ prefixed authorities)
-					Set<String> userScopes = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
+					Set<String> userScopes = AuthorityUtils.authorityListToSet(principal.getAuthorities())
 							.stream()
 							.filter(auth -> auth.startsWith("SCOPE_"))
 							.map(auth -> auth.replaceFirst("^SCOPE_", ""))
 							.collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
 
+					// Extract userId from AdminUserDetails if principal contains it
+					String userId = null;
+					if (principal.getPrincipal() instanceof AdminUserDetails) {
+						userId = ((AdminUserDetails) principal.getPrincipal()).getUserId();
+					}
+
 					// Put claims directly, no filtering against requested scopes
 					claims.put("roles", roles);
 					claims.put("authorities", userScopes);
+					claims.put("userId", userId);
+
 				});
 			}
 		};

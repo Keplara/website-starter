@@ -23,19 +23,26 @@ public class ClientConfig {
 	@Value("${local.userAuthClientSecret}")
 	private String userAuthClientSecret;
 
+	@Value("${local.adminAuthClientSecret}")
+	private String adminAuthClientSecret;
+
 	private PasswordEncoder passwordEncoder;
 
 	public ClientConfig(PasswordEncoder passwordEncoder) {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	@Value("${local.userClientBaseURL}")
+	@Value("${local.userClientBaseUrl}")
 	private String userClientBaseURL;
+
+	@Value("${local.adminClientBaseUrl}")
+	private String adminClientBaseURL;
 
 	@Bean
 	public RedisRegisteredClientRepository registeredClientRepository(
 			RedisTemplate<String, RegisteredClient> redisTemplate) {
 		String strippedUserClientBaseURL = userClientBaseURL.replaceAll("/+$", "");
+		String strippedAdminClientBaseURL = adminClientBaseURL.replaceAll("/+$", "");
 
 		RegisteredClient userAuthClient = RegisteredClient.withId(UUID.randomUUID().toString())
 				.clientId("userAuthClient")
@@ -44,14 +51,38 @@ public class ClientConfig {
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
 				.redirectUris(uris -> {
-					uris.add(strippedUserClientBaseURL + "/api/callback");
+					uris.add(strippedUserClientBaseURL + "/oauth/callback");
 				})
 				.postLogoutRedirectUri(strippedUserClientBaseURL)
 				.scope("product:read")
 				.scope("user:read")
-				.scope("subscription:bronze")
-				.scope("subscription:silver")
-				.scope("subscription:gold")
+				.scope(OidcScopes.PROFILE)
+				.tokenSettings(TokenSettings.builder()
+						.authorizationCodeTimeToLive(Duration.ofMinutes(2))
+						.accessTokenTimeToLive(Duration.ofMinutes(30))
+						.refreshTokenTimeToLive(Duration.ofDays(30))
+						.reuseRefreshTokens(false)
+						.build())
+				.clientSettings(ClientSettings.builder()
+						.requireAuthorizationConsent(false)
+						.requireProofKey(true)
+						.build())
+				.build();
+
+		RegisteredClient adminAuthClient = RegisteredClient.withId(UUID.randomUUID().toString())
+				.clientId("adminAuthClient")
+				.clientSecret(passwordEncoder.encode(adminAuthClientSecret))
+				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+				.redirectUris(uris -> {
+					uris.add(strippedAdminClientBaseURL + "/oauth/callback");
+				})
+				.postLogoutRedirectUri(strippedAdminClientBaseURL)
+				.scope("user:read")
+				.scope("product:read")
+				.scope("profile:update")
+				.scope("metric:read")
 				.scope(OidcScopes.PROFILE)
 				.tokenSettings(TokenSettings.builder()
 						.authorizationCodeTimeToLive(Duration.ofMinutes(2))
@@ -66,7 +97,7 @@ public class ClientConfig {
 				.build();
 
 		// admin auth client
-		return new RedisRegisteredClientRepository(redisTemplate, userAuthClient);
+		return new RedisRegisteredClientRepository(redisTemplate, userAuthClient, adminAuthClient);
 	}
 
 }

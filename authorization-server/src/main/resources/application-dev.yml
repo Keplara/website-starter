@@ -1,10 +1,9 @@
 redis:
-  username: ${REDIS_USER}
+  username: ${REDIS_USERNAME}
   password: ${REDIS_PASSWORD}
+  port: ${REDIS_PORT}
 server:
   port: ${PORT}
-  ssl:
-    enabled: false
 logging:
   level:
     org:
@@ -14,20 +13,24 @@ logging:
 spring:
   data:
     mongodb:
-      ssl: false
-      database: ${MONGO_DATABASE}
-      username: ${MONGO_USER}
-      password: ${MONGO_PASSWORD}
-      host: ${MONGO_HOST}
-      port: ${MONGO_PORT}
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin&authMechanism=SCRAM-SHA-256&tls=true
+    ssl:
+      enabled: false
   session:
     redis:
       repository-type: default
       expiration: 60
       host: ${REDIS_HOST}
-    timeout: 1m
-
+    timeout: 5m
+    tracker:
+      timeout: 30d
 local:
+  companyName: ${COMPANY_NAME}
+  userAuthClientSecret: ${USER_AUTH_CLIENT_SECRET}
+  authClientBaseUrl: ${AUTH_CLIENT_BASE_URL}
+  userClientBaseUrl: ${USER_CLIENT_BASE_URL}
+  adminAuthClientSecret: ${ADMIN_AUTH_CLIENT_SECRET}
+  adminClientBaseUrl: ${ADMIN_CLIENT_BASE_URL}
   jwt:
     secretKey: ${JWT_KEY}
     payloadKey: ${JWT_PAYLOAD_KEY} 
@@ -35,12 +38,10 @@ local:
     registration:
       secret: ${CLIENT_REGISTRATION_SECRET}
   email:
-    mode: smtp       # "ses" or "smtp"
+    mode: smtp  # "ses" or "smtp"
     smtp:
       host:  ${EMAIL_HOST}
       port: ${EMAIL_PORT}
-      username: ${EMAIL_USERNAME}
-      password: ${EMAIL_PASSWORD}
   aws:
     accessKey: ${AWS_S3_ACCESS_KEY}
     secretKey: ${AWS_S3_SECRET_KEY}

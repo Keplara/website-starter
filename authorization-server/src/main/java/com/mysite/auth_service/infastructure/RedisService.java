@@ -15,7 +15,9 @@ public class RedisService {
   private final ValueOperations<String, String> valueOperations;
   private final ValueOperations<String, PendingUser> pendingUserValueOperations;
 
-  private final long ACCOUNT_TOKEN_EXPIRATION = 5 * 60; // 15 minutes in seconds
+  private final long ACCOUNT_TOKEN_EXPIRATION = 5 * 60; // 5 minutes in seconds
+  private final long ACCOUNT_IAM_TOKEN_EXPIRATION = 30 * 24 * 60 * 60; // 30 days in seconds
+
   private final long PASSWORD_RESET_TOKEN_EXPIRATION = 5 * 60; // 5 minutes in seconds
   private final RedisSessionTrackerService redisSessionTrackerService;
 
@@ -52,6 +54,18 @@ public class RedisService {
       throw new IllegalArgumentException("userData cannot be null");
     }
     pendingUserValueOperations.set(key, userData, ACCOUNT_TOKEN_EXPIRATION, TimeUnit.SECONDS);
+
+    return token;
+  }
+
+  /* ---------------------------- Store Objects ---------------------------- */
+  public String storeIAMUser(PendingUser userData) {
+    String token = java.util.UUID.randomUUID().toString();
+    String key = getUserKey(token);
+    if (userData == null) {
+      throw new IllegalArgumentException("userData cannot be null");
+    }
+    pendingUserValueOperations.set(key, userData, ACCOUNT_IAM_TOKEN_EXPIRATION, TimeUnit.SECONDS);
 
     return token;
   }

@@ -1,0 +1,26 @@
+FROM redis:7
+
+
+# Install dependencies and Python
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    && apt-get clean
+
+
+# Install required packages and AWS CLI
+RUN apt-get update && apt-get install -y \
+    curl \
+    jq
+    
+# Upgrade pip and install awscli
+RUN pip3 install --break-system-packages awscli
+
+
+WORKDIR /redis
+EXPOSE 6379
+
+COPY entrypoint-development.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+CMD ["/usr/local/bin/entrypoint.sh"]

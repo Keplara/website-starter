@@ -1,0 +1,20 @@
+.dashboard-container {
+    height: 100vh;
+}
+
+.dashboard-sidenav {
+    width: 220px;
+    background: #f5f6fa; // match content background
+    color: #263238;      // dark text for contrast
+    padding-top: 16px;
+    border-right: 1px solid #e0e0e0; // subtle separation
+    box-shadow: none;
+}
+
+.sidenav-title {
+    margin-left: 16px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+

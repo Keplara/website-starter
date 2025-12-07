@@ -1,0 +1,21 @@
+<mat-toolbar [ngStyle]="{'background-color': 'var(--primary-800)', 'position': 'relative', 'z-index':'+10' }">
+  <a routerLink="/"  class="logo" style="width: 40px; height: 40px;">
+    <img style="width: inherit; height: inherit;" src="assets/logo.png" />
+  </a>
+  <span style="padding-left: 20px; font-size: 28px;">
+    <a routerLink="/" style="text-decoration: none; color: white;">{{ siteTitle }}</a>
+  </span>
+    <!-- Search bar and search results logic removed -->
+  <span style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+    <span *ngIf="isLoggedIn && userDetails" style="font-size: 18px; color: white; margin-right: 8px;">
+      {{ userDetails.name }}
+    </span>
+    <!-- Example: Feature button visible only if user has 'admin' role -->
+    <button *ngIf="isLoggedIn && hasRole('admin')" mat-button>Admin Panel</button>
+    <!-- Example: Feature button visible only if user has 'read:products' scope -->
+    <button *ngIf="isLoggedIn && hasScope('product:read')" mat-button>Products</button>
+    <!-- Add more feature buttons as needed, using hasScope/hasRole -->
+    <a *ngIf="!isLoggedIn" (click)="login()">Login</a>
+    <a *ngIf="isLoggedIn" (click)="logout()">Logout</a>
+  </span>
+</mat-toolbar>

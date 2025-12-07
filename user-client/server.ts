@@ -13,7 +13,6 @@ import { createClient } from 'redis';
 import type { RedisClientOptions } from 'redis';
 // Mount resource server routes at /api/resource
 import resourceRouter from './serverModules/resourceServer/routes';
-import { verifyAccessToken } from './serverModules/tokenVerifier';
 // Load environment variables from .env file
 
 dotenv.config();
@@ -27,7 +26,7 @@ export function app(): express.Express {
   const redisHost: string = process.env['REDIS_HOST'] || 'localhost';
   const resolvedPort = Number(process.env['REDIS_PORT']);
   const redisPort = Number.isNaN(resolvedPort) ? 6379 : resolvedPort;
-  
+
   const server = express();
   const serverDistFolder = dirname(fileURLToPath(import.meta.url));
   const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -42,24 +41,24 @@ export function app(): express.Express {
     authServerUrl: `${OAUTH_SERVER_BASE_URL}/oauth2/authorize`,
     tokenUrl: `${OAUTH_SERVER_BASE_URL}/oauth2/token`,
     clientId: process.env['OAUTH_CLIENT_ID'] || 'userAuthClient',
-    redirectUri: `${BASE_URL}/api/callback`,
+    redirectUri: `${BASE_URL}/oauth/callback`,
     clientSecret: process.env['OAUTH_CLIENT_SECRET'] || 'OTMzNzc4ODQtNTZhYy00NGY0LWFjMmItM2Y4NmQ3YjcxZjk5Cg',
     scope: 'user:read product:read'
   };
 
 
-  const redisOptions: RedisClientOptions = 
+  const redisOptions: RedisClientOptions =
   {
     username: redisUser,
     password: redisPassword,
     socket: {
-          host: redisHost,
-          port: redisPort,
+      host: redisHost,
+      port: redisPort,
     }
   };
 
   const redisClient = createClient(redisOptions);
-  
+
   redisClient.connect().catch(console.error);
 
   // Initialize Redis session store
@@ -80,16 +79,16 @@ export function app(): express.Express {
       maxAge: 1000 * 60 * 60 * 2 // 2 hours
     }
   }));
-  
+
   server.use(express.json());
   server.use(express.urlencoded({ extended: true }));
-  
+
   // Add proxy later to product API and other APIs 
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
   // Serve .well-known and other static files before API and SSR
   server.use('/.well-known', express.static(resolve(process.cwd(), '.well-known')));
-  server.use('/api/resource', resourceRouter);
+  server.use('/api/resource', resourceRouter); //not specidied in the changes but important to keep
 
   server.get('/health-check', (req, res) => {
     res.send("Server is Live!").status(200);
@@ -98,7 +97,7 @@ export function app(): express.Express {
   // ---------------------
   // Check session route
   // ---------------------
-  server.get('/api/check-session', (req, res) => {
+  server.get('/check-session', (req, res) => {
     const accessToken = (req.session as any).accessToken;
     const refreshToken = (req.session as any).refreshToken;
     const accessTokenExpiresAt = (req.session as any).accessTokenExpiresAt;
@@ -115,7 +114,7 @@ export function app(): express.Express {
       accessTokenExpired = true;
     } else {
       // No valid tokens, destroy session
-      req.session.destroy(() => {});
+      req.session.destroy(() => { });
       loggedIn = false;
       accessTokenExpired = true;
     }
@@ -123,7 +122,7 @@ export function app(): express.Express {
   });
 
   // OAuth Login Endpoint - Initiates OAuth flow
-  server.get('/api/login', (req, res) => {
+  server.get('/login', (req, res) => {
     // Check if user already has a valid access token
     (req.session as any).codeVerifier = undefined;
     (req.session as any).state = undefined;
@@ -186,7 +185,7 @@ export function app(): express.Express {
   });
 
   // OAuth Callback Endpoint - Exchanges code for tokens
-  server.get('/api/callback', async (req, res) => {
+  server.get('/oauth/callback', async (req, res) => {
     console.log('[CALLBACK] Received OAuth callback');
     const { code, state, error, error_description } = req.query;
     console.log('[CALLBACK] Query params:', req.query);
@@ -210,7 +209,7 @@ export function app(): express.Express {
     // Get codeVerifier from session for PKCE
     const codeVerifier = (req.session as any).codeVerifier;
     const storedChallenge = (req.session as any).codeChallenge;
-    
+
     if (!codeVerifier) {
       console.error('[CALLBACK] Missing codeVerifier in session');
       return res.status(400).send('Missing PKCE code verifier - authorization may have already been processed');
@@ -276,24 +275,7 @@ export function app(): express.Express {
       (req.session as any).refreshToken = tokens.refresh_token;
       (req.session as any).scopes = tokens.scope || '';
       console.log('[CALLBACK] Token response scopes:', tokens.scope);
-
-      // Verify access token and extract roles
-      try {
-        const decoded = await verifyAccessToken(tokens.access_token);
-        let roles: any = [];
-        if (typeof decoded === 'object' && decoded !== null) {
-          const d = decoded as { roles?: string[] | string; role?: string[] | string };
-          if (d.roles) {
-            roles = Array.isArray(d.roles) ? d.roles : [d.roles];
-          } else if (d.role) {
-            roles = Array.isArray(d.role) ? d.role : [d.role];
-          }
-        }
-        (req.session as any).roles = roles;
-      } catch (err) {
-        console.error('[CALLBACK] Access token verification failed:', err);
-        return res.redirect('/?error=invalid_token');
-      }
+      console.log('Token callback Access Token:', (req.session as any).accessToken);
 
       // Track access token expiration for automatic refresh
       if (tokens.expires_in) {
@@ -329,7 +311,7 @@ export function app(): express.Express {
   });
 
   // Token refresh endpoint
-  server.post('/api/refresh', async (req, res) => {
+  server.post('/oauth/refresh', async (req, res) => {
     const refreshToken = (req.session as any).refreshToken;
 
     if (!refreshToken) {
@@ -351,7 +333,7 @@ export function app(): express.Express {
 
       if (!tokenResponse.ok) {
         // Refresh failed - clear session and require re-login
-        req.session.destroy(() => {});
+        req.session.destroy(() => { });
         return res.status(401).json({ error: 'Token refresh failed' });
       }
 
@@ -362,28 +344,10 @@ export function app(): express.Express {
       if (tokens.refresh_token) {
         (req.session as any).refreshToken = tokens.refresh_token;
       }
+      console.log('Token refresh response:', tokens);
       // move to resource server as scopes and roles are used on the resource server and it can verify token on every request.
       (req.session as any).scopes = tokens.scope || (req.session as any).scopes || '';
-      console.log('Token refresh response scopes:', tokens.scope);
-
-      // Verify access token and extract roles
-      try {
-        const decoded = await verifyAccessToken(tokens.access_token);
-        let roles: any = [];
-        if (typeof decoded === 'object' && decoded !== null) {
-          const d = decoded as { roles?: string[] | string; role?: string[] | string };
-          if (d.roles) {
-            roles = Array.isArray(d.roles) ? d.roles : [d.roles];
-          } else if (d.role) {
-            roles = Array.isArray(d.role) ? d.role : [d.role];
-          }
-        }
-        (req.session as any).roles = roles;
-      } catch (err) {
-        console.error('[REFRESH] Access token verification failed:', err);
-        req.session.destroy(() => {});
-        return res.status(401).json({ error: 'Invalid access token after refresh' });
-      }
+      console.log('Token refresh Access Token:', (req.session as any).accessToken);
 
       // Update access token expiration
       if (tokens.expires_in) {
@@ -399,7 +363,7 @@ export function app(): express.Express {
       }
       req.session.save();
 
-      return res.json({ 
+      return res.json({
         success: true,
         accessTokenExpiresIn: tokens.expires_in,
         refreshTokenExpiresIn: tokens.refresh_expires_in
@@ -411,7 +375,7 @@ export function app(): express.Express {
   });
 
   // OAuth2 Logout endpoint: revoke access and refresh tokens, then destroy session
-  server.post('/api/logout', async (req, res) => {
+  server.post('/logout', async (req, res) => {
     const accessToken = (req.session as any).accessToken;
     // Remove tokens from session before destroying
     if (req.session) {

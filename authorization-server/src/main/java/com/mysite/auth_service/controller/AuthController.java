@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mysite.auth_service.configuration.exceptions.AuthApiException;
 import com.mysite.auth_service.configuration.responseObjects.BasicResponse;
 import com.mysite.auth_service.model.mongo.User;
+import com.mysite.auth_service.model.request.CreateIAMUserRequest;
 import com.mysite.auth_service.model.request.CreateUserRequest;
 import com.mysite.auth_service.service.UserService;
 
@@ -46,6 +47,22 @@ public class AuthController {
 
 	public AuthController(UserService userService) {
 		this.userService = userService;
+	}
+
+	@PostMapping("/iam/create-user/request")
+	@PreAuthorize("hasRole('ROOT') || hasAuthority('SCOPE_iamuser:create')")
+	public BasicResponse createIAMUserRequest(@RequestBody(required = false) CreateIAMUserRequest userRequest)
+			throws AuthApiException, IOException, MessagingException, GeneralSecurityException {
+		Boolean isUserTokenCreated = userService.createIAMUserRequest(userRequest, authClientBaseUrl);
+		// If user token creation failed, throw an exception
+		if (!isUserTokenCreated) {
+			throw new AuthApiException("User token could not be created.");
+		}
+
+		return BasicResponse.builder()
+				.message("Thank you for signing up with us! Please look out for an email to verify your user.")
+				.status(HttpStatus.OK)
+				.build();
 	}
 
 	/*

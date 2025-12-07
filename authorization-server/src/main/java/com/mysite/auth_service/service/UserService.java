@@ -23,6 +23,7 @@ import com.mysite.auth_service.infastructure.RedisService;
 import com.mysite.auth_service.infastructure.SimpleEmailService;
 import com.mysite.auth_service.model.PendingUser;
 import com.mysite.auth_service.model.mongo.User;
+import com.mysite.auth_service.model.request.CreateIAMUserRequest;
 import com.mysite.auth_service.model.request.CreateUserRequest;
 
 @Service
@@ -32,6 +33,9 @@ public class UserService {
 
   @Value("${local.authClientBaseUrl}")
   private String authClientBaseUrl;
+
+  @Value("${local.adminClientBaseUrl}")
+  private String adminClientBaseUrl;
 
   @Value("${local.companyName}")
   private String companyName;
@@ -48,6 +52,50 @@ public class UserService {
     this.mongoService = mongoService;
   }
 
+  public Boolean createIAMUserRequest(CreateIAMUserRequest userRequest, String authClientBaseUrl)
+      throws AuthApiException {
+    // Check if a user with the provided email already exists
+    User existingUserByEmail = mongoService.getUser(userRequest.getEmailAddress());
+    if (existingUserByEmail != null) {
+      // If user exists, throw exception to prevent duplicate user creation
+      throw new AuthApiException(
+          String.format("User with email '%s' already exists.", existingUserByEmail.getEmailAddress()));
+    } else {
+      // Extract email from request
+      String emailAddress = userRequest.getEmailAddress();
+      Collection<GrantedAuthority> authorities = List.of(
+          new SimpleGrantedAuthority("SCOPE_iamuser:read"),
+          new SimpleGrantedAuthority("SCOPE_product:read"),
+          new SimpleGrantedAuthority("SCOPE_metrics:read"),
+          new SimpleGrantedAuthority("ROLE_ADMIN"));
+
+      String userBaseURLToken = this.redisService.storeIAMUser(
+          new PendingUser(
+              emailAddress,
+              userRequest.getUsername(),
+              this.passwordEncoder.encode(userRequest.getPassword()), authorities));
+
+      // emailService.sendUserVerificationEmail(emailAddress, userBaseURLToken);
+      // Build the verification URL with the token
+      String userVerificationUrl = String.format("%s/auth/iam/create-user/confirm?token=%s", adminClientBaseUrl,
+          userBaseURLToken);
+
+      // Email body with instructions for verifying the user
+      String body = String.format(
+          "Please click the link below to verify your user.\n%s",
+          userVerificationUrl);
+
+      // Send the verification email
+      simpleEmailService.sendEmail(
+          userRequest.getEmailAddress(),
+          "User Verification",
+          body);
+
+      // Return a success response to the client
+      return true;
+    }
+  }
+
   public Boolean createUserRequest(CreateUserRequest userRequest, String authClientBaseUrl)
       throws AuthApiException {
     // Check if a user with the provided email already exists
@@ -60,11 +108,11 @@ public class UserService {
       // Extract email from request
       String emailAddress = userRequest.getEmailAddress();
       Collection<GrantedAuthority> authorities = List.of(
-          new SimpleGrantedAuthority("SCOPE_product.read"),
           new SimpleGrantedAuthority("ROLE_USER"),
-          new SimpleGrantedAuthority("SCOPE_auth.user.password-reset.create"),
-          new SimpleGrantedAuthority("SCOPE_auth.user.user.update"),
-          new SimpleGrantedAuthority("SCOPE_user.read"));
+          new SimpleGrantedAuthority("SCOPE_product:read"),
+          new SimpleGrantedAuthority("SCOPE_auth.user:password-reset:create"),
+          new SimpleGrantedAuthority("SCOPE_auth.user:update"),
+          new SimpleGrantedAuthority("SCOPE_user:read"));
       // Create user verification data and store in Redis
       // Token will expire automatically after a configured duration
 
@@ -76,7 +124,7 @@ public class UserService {
 
       // emailService.sendUserVerificationEmail(emailAddress, userBaseURLToken);
       // Build the verification URL with the token
-      String userVerificationUrl = String.format("%s/create-user?token=%s", authClientBaseUrl,
+      String userVerificationUrl = String.format("%s/auth/create-user/confirm?token=%s", authClientBaseUrl,
           userBaseURLToken);
 
       // Email body with instructions for verifying the user

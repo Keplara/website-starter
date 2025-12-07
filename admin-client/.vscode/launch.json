@@ -1,0 +1,22 @@
+{
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Main Client Dev",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "preLaunchTask": "start main client",
+      "url": "http://localhost:8080/",
+      "webRoot": "${cwd}"
+
+    },
+    {
+      "name": "Launch Main Client Dev Test",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "test main client",
+      "url": "http://localhost:9876/debug.html"
+    }
+  ]
+}

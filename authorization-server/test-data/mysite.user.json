@@ -7,7 +7,7 @@
   "username": "supervisor",
   "authorities": [
     {
-      "role": "SCOPE_product.read",
+      "role": "SCOPE_product:read",
       "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
     },
     {
@@ -15,7 +15,19 @@
       "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
     },
     {
-      "role": "SCOPE_user.read",
+      "role": "ROLE_ADMIN",
+      "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
+    },
+    {
+      "role": "ROLE_ROOT",
+      "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
+    },
+    {
+      "role": "SCOPE_user:read",
+      "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
+    },
+    {
+      "role": "SCOPE_user:create",
       "_class": "org.springframework.security.core.authority.SimpleGrantedAuthority"
     }
   ],

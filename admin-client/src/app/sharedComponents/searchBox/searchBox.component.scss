@@ -1,0 +1,21 @@
+@use '@angular/material' as mat;
+::ng-deep .search-form-field {
+    @include mat.form-field-density(-5);
+
+    display: flex;
+    align-items: center;
+    button {
+        border: none;
+    }
+    .mdc-text-field--filled .mat-mdc-floating-label {
+        display: block;
+    }
+    .mat-mdc-button-base {
+        --mdc-icon-button-state-layer-size: 37px !important;
+        padding: 8px !important;
+    }
+}
+
+::ng-deep .icon-button {
+    cursor: pointer; /* Show pointer on hover */
+  }

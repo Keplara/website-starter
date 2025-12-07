@@ -12,13 +12,13 @@ export class AuthService {
   private loggedInSubject = new BehaviorSubject<boolean>(false);
   loggedIn$ = this.loggedInSubject.asObservable();
   clientBaseURL: string = environment.clientBaseURL;
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   // ---------------------
   // CHECK LOGIN STATUS
   // ---------------------
   checkLoginStatus(): Observable<boolean> {
-  const url = `/api/check-session`;
+    const url = `/check-session`;
 
     return this.http.get<{ loggedIn: boolean }>(url, { withCredentials: true })
       .pipe(
@@ -38,9 +38,9 @@ export class AuthService {
   logout(): void {
     this.loggedInSubject.next(false);
     // Only call backend proxy logout endpoint
-    this.http.post('/api/logout', {}, { withCredentials: true }).subscribe({
+    this.http.post('/logout', {}, { withCredentials: true }).subscribe({
       next: () => {
-        console.log('Logged out from client server');   
+        console.log('Logged out from client server');
         // Redirect to home page after logout
         this.router.navigate(['/']);
       },

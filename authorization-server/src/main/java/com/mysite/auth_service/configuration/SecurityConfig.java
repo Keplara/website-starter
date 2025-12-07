@@ -93,7 +93,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/auth/password-reset/confirm").permitAll()
 						.requestMatchers(HttpMethod.POST, "/oauth2/authorize").permitAll()
 						.requestMatchers("/.well-known/jwks.json").permitAll()
-
+						.requestMatchers(HttpMethod.POST, "/auth/iam/create-user/request").hasRole("ROOT")
 						.requestMatchers("/send-test-email").permitAll()
 						.requestMatchers("/test-mongo-record").permitAll()
 						.requestMatchers("/error", "/error/**").permitAll()
@@ -101,7 +101,6 @@ public class SecurityConfig {
 						.requestMatchers("/", "/index.html", "/*.js", "/*.css", "/*.ico", "/*.png", "/*.jpg", "/*.svg")
 						.permitAll()
 						.anyRequest().authenticated())
-
 				.formLogin(formLogin -> {
 
 					formLogin.loginProcessingUrl("/login");
@@ -111,9 +110,18 @@ public class SecurityConfig {
 
 					formLogin.failureHandler((request, response, authentication) -> {
 						System.out.println("Login failed.");
-						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-						response.getWriter().write("Invalid credentials");
-						response.getWriter().flush();
+						String ajaxHeader = request.getHeader("X-Requested-With");
+						boolean isAjax = "XMLHttpRequest".equals(ajaxHeader);
+
+						if (isAjax) {
+							response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+							response.setContentType("application/json");
+							response.setCharacterEncoding("UTF-8");
+							response.getWriter().write("{\"error\":\"Invalid credentials\"}");
+							response.getWriter().flush();
+						} else {
+							response.sendRedirect(request.getContextPath() + "/login?error=true&message=Invalid+credentials");
+						}
 					});
 					formLogin.successHandler((request, response, authentication) -> {
 						try {
@@ -183,7 +191,7 @@ public class SecurityConfig {
 							}
 						}
 						String userId = authentication != null ? authentication.getName() : null;
-						String sessionId = request.getSession() != null ? request.getSession().getId() : null;
+						String sessionId = request.getSession(false) != null ? request.getSession(false).getId() : null;
 						if (userId != null && sessionId != null) {
 							redisSessionTrackerService.deregisterSession(userId, sessionId);
 						}
