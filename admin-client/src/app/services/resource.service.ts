@@ -29,14 +29,14 @@ export class ManagementService {
 
 
   /**
-   * Fetches user details from /api/resource/user and logs/checks session state on error.
+   * Fetches user details from /api/resource/products and logs/checks session state on error.
    * Returns an observable with the user details or throws error.
    * Also updates the BehaviorSubject and parses scopes/roles.
    */
   getProduct(productId: string): Observable<any> {
     console.log('[UserService] Fetching /api/product');
     return new Observable(observer => {
-      this.http.get('/api/resource/product', { withCredentials: true }).subscribe({
+      this.http.get('/api/resource/products', { withCredentials: true }).subscribe({
         next: (data: any) => {
           console.log('[UserService] Fetched user details:', data);
           this.userDetailsSubject.next(data);

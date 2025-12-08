@@ -235,7 +235,6 @@ export function requirePermission(permission: string) {
 router.use(validateAccessToken);
 router.use(resolvePermissions);
 
-router.use(usersRouter);
 router.use(productsRouter);
 router.use(policyRouter);
 router.use(groupsRouter);

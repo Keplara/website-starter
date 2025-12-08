@@ -78,12 +78,21 @@ export function app(): express.Express {
   server.use('/.well-known', express.static(resolve(process.cwd(), '.well-known')));
 
   // Proxy all /api requests to the management API service
-  const managementApiUrl = process.env['MANAGEMENT_API_URL'] || 'http://localhost:3001';
-  server.use('/api', createProxyMiddleware({
+  const managementApiUrl = process.env['MANAGEMENT_API_BASE_URL'] || 'http://localhost:3001';
+  const resourceServerApiUrl = process.env['RESOURCE_API_BASE_URL'] || 'http://localhost:3008';
+
+  server.use('/api/management', createProxyMiddleware({
     target: managementApiUrl,
     changeOrigin: true,
     pathRewrite: {
-      '^/api': '/api' // Keep the /api prefix
+      '^/api/management': '/api' // Keep the /api prefix
+    },
+    onProxyReq: (proxyReq, req) => {
+      // Forward access token from session when available
+      const accessToken = (req as any).session?.accessToken;
+      if (accessToken) {
+        proxyReq.setHeader('Authorization', `Bearer ${accessToken}`);
+      }
     },
     onError: (err, req, res) => {
       console.error('Proxy error:', err);
@@ -91,8 +100,28 @@ export function app(): express.Express {
     }
   }));
 
-  server.use('/oauth', authRouter);
+  server.use('/api/resource', createProxyMiddleware({
+    target: resourceServerApiUrl,
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/resource': '/api' // Keep the /api prefix
+    },
+    onProxyReq: (proxyReq, req) => {
+      // Forward access token from session when available
+      const accessToken = (req as any).session?.accessToken;
+      if (accessToken) {
+        proxyReq.setHeader('Authorization', `Bearer ${accessToken}`);
+      }
+    },
+    onError: (err, req, res) => {
+      console.error('[PROXY] Error:', err);
+      res.status(503).json({ error: 'Resource API unavailable' });
+    }
+  }));
 
+
+
+  server.use(authRouter);
 
 
   server.get('/health-check', (req, res) => {
@@ -102,7 +131,7 @@ export function app(): express.Express {
   // ---------------------
   // Check session route
   // ---------------------
-  server.get('/api/check-session', (req, res) => {
+  server.get('/check-session', (req, res) => {
     const accessToken = (req.session as any).accessToken;
     const refreshToken = (req.session as any).refreshToken;
     const accessTokenExpiresAt = (req.session as any).accessTokenExpiresAt;

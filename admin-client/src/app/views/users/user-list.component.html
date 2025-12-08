@@ -1,4 +1,10 @@
-<h3>User List</h3>
+<div style="display:flex; justify-content: flex-end; align-items: center; margin: 16px 0; padding-right: 20px; gap: 8px;">
+  <button mat-raised-button color="primary" (click)="addUser()">
+    <mat-icon>add</mat-icon>
+    Add User
+  </button>
+</div>
+
 <mat-selection-list style="padding: 15px;">
   <ng-container *ngFor="let user of users; let last = last">
     <mat-list-option [disableRipple]="true" style="padding: 0;">

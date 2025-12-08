@@ -9,6 +9,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.lang.NonNull;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.session.data.redis.RedisIndexedSessionRepository;
@@ -32,6 +33,7 @@ public class RedisConfig {
     String password = "Supervisor";
 
     @Value("${redis.host}")
+    @NonNull
     String host = "host.docker.internal";
 
     @Value("${redis.port}")

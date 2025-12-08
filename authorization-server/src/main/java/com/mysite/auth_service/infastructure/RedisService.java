@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import com.mysite.auth_service.model.PendingUser;
@@ -31,15 +32,21 @@ public class RedisService {
   }
 
   /* HELPERS */
-  public String getUserKey(String token) {
+  public @NonNull String getUserKey(String token) {
+    if (token == null || token.isEmpty()) {
+      throw new IllegalArgumentException("Token cannot be null or empty");
+    }
     return "user:" + token;
   }
 
-  private String getPasswordResetKey(String token) {
+  private @NonNull String getPasswordResetKey(String token) {
+    if (token == null || token.isEmpty()) {
+      throw new IllegalArgumentException("Token cannot be null or empty");
+    }
     return "passwordReset:" + token;
   }
 
-  private Boolean isTokenValid(String token) {
+  private Boolean isTokenValid(@NonNull String token) {
     if (token == null || token.isEmpty()) {
       throw new IllegalArgumentException("Token cannot be null or empty");
     }

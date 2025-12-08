@@ -14,7 +14,7 @@ export const authGuard: CanActivateFn = () => {
       if (!isLoggedIn) {
         console.log('AuthGuard: User not authenticated, redirecting to login.');
         if (typeof window !== 'undefined') {
-          window.location.href = '/api/login';
+          window.location.href = '/login';
         }
       }
       console.log('AuthGuard: User is authenticated.');

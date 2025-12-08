@@ -1,9 +1,9 @@
 package com.mysite.auth_service.configuration;
 
-
 import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 import lombok.Getter;
@@ -15,12 +15,12 @@ import java.util.Map;
 @Getter
 @Setter
 public class ResponseLog {
-    
+
     private LocalDateTime dateTime;
     private String message;
     private HttpStatus httpStatus;
     private Object body;
-    
+
     public ResponseLog(Object body, String message, HttpStatus httpStatus) {
         this.message = message;
         this.body = body;
@@ -40,13 +40,13 @@ public class ResponseLog {
         this.dateTime = LocalDateTime.now();
     }
 
-    public ResponseEntity<Object> getResponse(){
+    public ResponseEntity<Object> getResponse() {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("message", message);
         map.put("body", body);
         map.put("status", httpStatus.value());
         map.put("dateTime", dateTime.toString());
 
-        return new ResponseEntity<Object>(map, httpStatus);
+        return new ResponseEntity<Object>(map, HttpStatusCode.valueOf(httpStatus.value()));
     }
 }

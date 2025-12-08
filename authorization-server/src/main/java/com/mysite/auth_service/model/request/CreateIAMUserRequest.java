@@ -4,7 +4,6 @@ package com.mysite.auth_service.model.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mongodb.lang.Nullable;
 
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;

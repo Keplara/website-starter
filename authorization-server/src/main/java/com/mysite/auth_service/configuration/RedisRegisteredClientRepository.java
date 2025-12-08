@@ -8,7 +8,6 @@ import org.springframework.util.Assert;
 
 import java.util.Set;
 
-
 public class RedisRegisteredClientRepository implements RegisteredClientRepository {
 
     private static final String REGISTERED_CLIENT_PREFIX = "registered_client:";
@@ -16,8 +15,8 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     private final ValueOperations<String, RegisteredClient> valueOperations;
     private final RedisTemplate<String, RegisteredClient> redisTemplate;
 
-    public RedisRegisteredClientRepository(RedisTemplate<String, RegisteredClient> redisTemplate, 
-                                           RegisteredClient... registrations) {
+    public RedisRegisteredClientRepository(RedisTemplate<String, RegisteredClient> redisTemplate,
+            RegisteredClient... registrations) {
         this.redisTemplate = redisTemplate;
         this.valueOperations = redisTemplate.opsForValue();
         Assert.notEmpty(registrations, "registrations cannot be empty");
@@ -41,10 +40,12 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
         Set<String> keys = redisTemplate.keys(REGISTERED_CLIENT_PREFIX + "*");
         if (keys != null) {
             for (String key : keys) {
-                RegisteredClient registeredClient = valueOperations.get(key);
+                if (key != null) {
+                    RegisteredClient registeredClient = valueOperations.get(key);
 
-                if (registeredClient != null && clientId.equals(registeredClient.getClientId())) {
-                    redisTemplate.delete(key);
+                    if (registeredClient != null && clientId.equals(registeredClient.getClientId())) {
+                        redisTemplate.delete(key);
+                    }
                 }
             }
         }
@@ -54,11 +55,11 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     public void save(RegisteredClient registeredClient) {
 
         Assert.notNull(registeredClient, "registeredClient cannot be null");
-        
+
         removeByClientId(registeredClient.getClientId());
 
         assertUniqueIdentifiers(registeredClient);
-        
+
         valueOperations.set(REGISTERED_CLIENT_PREFIX + registeredClient.getId(), registeredClient);
     }
 
@@ -75,9 +76,11 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
         Set<String> keys = redisTemplate.keys(REGISTERED_CLIENT_PREFIX + "*");
         if (keys != null) {
             for (String key : keys) {
-                RegisteredClient registeredClient = valueOperations.get(key);
-                if (registeredClient != null && clientId.equals(registeredClient.getClientId())) {
-                    return registeredClient;
+                if (key != null) {
+                    RegisteredClient registeredClient = valueOperations.get(key);
+                    if (registeredClient != null && clientId.equals(registeredClient.getClientId())) {
+                        return registeredClient;
+                    }
                 }
             }
         }

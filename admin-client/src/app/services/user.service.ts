@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, catchError, throwError, tap, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -16,51 +17,59 @@ export class UserService {
   private allowStatements: { action: string; resource?: string }[] = [];
   private denyStatements: { action: string; resource?: string }[] = [];
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) { }
 
   /**
-   * Fetches user details from /api/resource/user and logs/checks session state on error.
+   * Fetches user details from /api/resource/user-details and logs/checks session state on error.
    * Returns an observable with the user details or throws error.
    * Also updates the BehaviorSubject and parses scopes/roles.
    */
   fetchUserDetails(): Observable<any> {
-    console.log('[UserService] Fetching /api/user');
-    return new Observable(observer => {
-      this.http.get('/api/resource/user', { withCredentials: true }).subscribe({
-        next: (data: any) => {
-          console.log('[UserService] Fetched user details:', data);
-          this.userDetailsSubject.next(data);
-          this.scopes = Array.isArray(data?.scopes) ? data.scopes : (typeof data?.scope === 'string' ? data.scope.split(' ') : []);
-          this.roles = Array.isArray(data?.roles) ? data.roles : (typeof data?.role === 'string' ? data.role.split(' ') : []);
-          this.actions = Array.isArray(data?.actions) ? data.actions.map((a: string) => a.toLowerCase()) : [];
-          this.deniedActions = Array.isArray(data?.deniedActions) ? data.deniedActions.map((a: string) => a.toLowerCase()) : [];
-          this.allowStatements = Array.isArray(data?.allowStatements)
-            ? data.allowStatements.map((s: any) => ({
-              action: String(s.action || '').toLowerCase(),
-              resource: s.resource ? String(s.resource).toLowerCase() : undefined,
-            }))
-            : [];
-          this.denyStatements = Array.isArray(data?.denyStatements)
-            ? data.denyStatements.map((s: any) => ({
-              action: String(s.action || '').toLowerCase(),
-              resource: s.resource ? String(s.resource).toLowerCase() : undefined,
-            }))
-            : [];
-          observer.next(data);
-          observer.complete();
-        },
-        error: (err) => {
-          this.userDetailsSubject.next(null);
-          this.scopes = [];
-          this.roles = [];
-          this.actions = [];
-          this.deniedActions = [];
-          this.allowStatements = [];
-          this.denyStatements = [];
-          observer.error(err);
-        }
-      });
-    });
+    // Skip during SSR to avoid authentication errors
+    console.log('[UserService] Checking platform for fetchUserDetails');
+    if (!isPlatformBrowser(this.platformId)) {
+      console.log('[UserService] Skipping fetch during SSR');
+      return of(null);
+    }
+
+    console.log('[UserService] Fetching /api/resource/user-details');
+    return this.http.get('/api/resource/user-details', { withCredentials: true }).pipe(
+      tap((data: any) => {
+        console.log('[UserService] Fetched user details:', data);
+
+        this.userDetailsSubject.next(data);
+        this.scopes = Array.isArray(data?.scopes) ? data.scopes : (typeof data?.scope === 'string' ? data.scope.split(' ') : []);
+        this.roles = Array.isArray(data?.roles) ? data.roles : (typeof data?.role === 'string' ? data.role.split(' ') : []);
+        this.actions = Array.isArray(data?.actions) ? data.actions.map((a: any) => a.toLowerCase()) : [];
+        this.deniedActions = Array.isArray(data?.deniedActions) ? data.deniedActions.map((a: any) => a.toLowerCase()) : [];
+        this.allowStatements = Array.isArray(data?.allowStatements)
+          ? data.allowStatements.map((s: any) => ({
+            action: String(s.action || '').toLowerCase(),
+            resource: s.resource ? String(s.resource).toLowerCase() : undefined,
+          }))
+          : [];
+        this.denyStatements = Array.isArray(data?.denyStatements)
+          ? data.denyStatements.map((s: any) => ({
+            action: String(s.action || '').toLowerCase(),
+            resource: s.resource ? String(s.resource).toLowerCase() : undefined,
+          }))
+          : [];
+      }),
+      catchError((err) => {
+        this.userDetailsSubject.next(null);
+        this.scopes = [];
+        this.roles = [];
+        this.actions = [];
+        this.deniedActions = [];
+        this.allowStatements = [];
+        this.denyStatements = [];
+        // navigate to login if 401/403
+        return of(null);
+      })
+    );
   }
 
   /**

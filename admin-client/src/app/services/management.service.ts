@@ -19,8 +19,8 @@ export interface Product {
   providedIn: 'root',
 })
 export class ManagementService {
-  private userDetailsSubject = new BehaviorSubject<any | null>(null);
-  public userDetails$ = this.userDetailsSubject.asObservable();
+  // private userDetailsSubject = new BehaviorSubject<any | null>(null); // will come from resource server
+  // public userDetails$ = this.userDetailsSubject.asObservable(); // will come from resource server
 
   private scopes: string[] = [];
   private roles: string[] = [];
@@ -29,35 +29,18 @@ export class ManagementService {
 
 
   /**
-   * Fetches user details from /api/resource/user and logs/checks session state on error.
-   * Returns an observable with the user details or throws error.
-   * Also updates the BehaviorSubject and parses scopes/roles.
+   * Adds a new product via POST to /api/management/product
+   * Returns an observable with the created product data or error.
    */
-  editProduct(product: Product): Observable<any> {
-    console.log('[UserService] Fetching /api/user');
-    return new Observable(observer => {
-      this.http.get('/api/management/product', { withCredentials: true }).subscribe({
-        next: (data: any) => {
-          console.log('[UserService] Fetched user details:', data);
-          this.userDetailsSubject.next(data);
-          this.scopes = Array.isArray(data?.scopes) ? data.scopes : (typeof data?.scope === 'string' ? data.scope.split(' ') : []);
-          this.roles = Array.isArray(data?.roles) ? data.roles : (typeof data?.role === 'string' ? data.role.split(' ') : []);
-          observer.next(data);
-          observer.complete();
-        },
-        error: (err) => {
-          this.userDetailsSubject.next(null);
-          this.scopes = [];
-          this.roles = [];
-          observer.error(err);
-        }
-      });
-    });
+  addProduct(product: Product): Observable<any> {
+    console.log('[ManagementService] Adding product:', product);
+    return this.http.post('/api/management/product', product, { withCredentials: true });
   }
 
   /**
    * Returns true if the user has the specified scope.
    */
+  // Make a directive
   hasScope(scope: string): boolean {
     console.log('[UserService] Checking scope:', scope, 'User scopes:', this.scopes);
     return this.scopes.includes(scope.toLowerCase());
@@ -66,6 +49,7 @@ export class ManagementService {
   /**
    * Returns true if the user has the specified role.
    */
+  // Make a directive
   hasRole(role: string): boolean {
     console.log('[UserService] Checking role:', role, 'User roles:', this.roles);
     return this.roles.includes(role.toLowerCase());

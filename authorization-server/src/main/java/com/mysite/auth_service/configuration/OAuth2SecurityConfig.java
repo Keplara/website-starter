@@ -42,6 +42,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import com.nimbusds.jose.proc.SecurityContext;
 
@@ -111,11 +112,30 @@ public class OAuth2SecurityConfig {
 		return http.build();
 	}
 
-	private Consumer<List<AuthenticationProvider>> configureAuthenticationValidator(CustomUserDetailsService cs) {
+	private Consumer<List<AuthenticationProvider>> configureAuthenticationValidator(CustomUserDetailsService cs)
+			throws NullPointerException {
 		return (authenticationProviders) -> authenticationProviders.forEach((authenticationProvider) -> {
 			if (authenticationProvider instanceof OAuth2AuthorizationCodeRequestAuthenticationProvider) {
 				Consumer<OAuth2AuthorizationCodeRequestAuthenticationContext> authenticationValidator = new CustomRedirectUriValidator()
-						.andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR);
+						.andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR)
+						.andThen(context -> {
+							// Validate role for specific clients
+							OAuth2AuthorizationRequest authorizationRequest = context.getAuthorizationRequest();
+							if (authorizationRequest != null) {
+								String clientId = authorizationRequest.getClientId();
+
+								// adminAuthClient requires ROOT or ADMIN role
+								if ("adminAuthClient".equals(clientId)) {
+									boolean hasRequiredRole = context.getAuthentication().getAuthorities().stream()
+											.anyMatch(
+													auth -> auth.getAuthority().equals("ROLE_ROOT") || auth.getAuthority().equals("ROLE_ADMIN"));
+
+									if (!hasRequiredRole) {
+										throw new RuntimeException("User does not have required role (ROOT or ADMIN) for adminAuthClient");
+									}
+								}
+							}
+						});
 
 				((OAuth2AuthorizationCodeRequestAuthenticationProvider) authenticationProvider)
 						.setAuthenticationValidator(authenticationValidator);

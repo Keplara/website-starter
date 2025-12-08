@@ -1,16 +1,24 @@
 import { HttpInterceptorFn, HttpErrorResponse, HttpClient } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 
 export const resourceAuthInterceptor: HttpInterceptorFn = (req, next) => {
+  const platformId = inject(PLATFORM_ID);
+  
+  // Skip interceptor during SSR to avoid NotYetImplemented errors
+  if (!isPlatformBrowser(platformId)) {
+    return next(req);
+  }
+  
   // Only intercept /api/resource requests
   if (!req.url.startsWith('/api/resource')) {
     return next(req);
   }
 
   const http = inject(HttpClient);
-  return http.get<{ loggedIn: boolean, accessTokenExpired: boolean }>('/api/check-session', { withCredentials: true }).pipe(
+  return http.get<{ loggedIn: boolean, accessTokenExpired: boolean }>('/check-session', { withCredentials: true }).pipe(
     switchMap(session => {
       if (session.loggedIn && !session.accessTokenExpired) {
         // Token is valid, proceed

@@ -87,7 +87,7 @@ public class ClientConfig {
 				.tokenSettings(TokenSettings.builder()
 						.authorizationCodeTimeToLive(Duration.ofMinutes(2))
 						.accessTokenTimeToLive(Duration.ofMinutes(30))
-						.refreshTokenTimeToLive(Duration.ofDays(30))
+						.refreshTokenTimeToLive(Duration.ofHours(3))
 						.reuseRefreshTokens(false)
 						.build())
 				.clientSettings(ClientSettings.builder()

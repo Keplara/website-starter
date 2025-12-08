@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import crypto from 'crypto';
 import { generatePKCE } from './utils/generatePKCE';
@@ -9,13 +12,12 @@ const OAUTH_SERVER_BASE_URL = process.env['OAUTH_SERVER_BASE_URL'] || 'http://lo
 const OAUTH_CONFIG = {
   authServerUrl: `${OAUTH_SERVER_BASE_URL}/oauth2/authorize`,
   tokenUrl: `${OAUTH_SERVER_BASE_URL}/oauth2/token`,
-  clientId: process.env['OAUTH_CLIENT_ID'] || 'userAuthClient',
+  clientId: process.env['OAUTH_CLIENT_ID'] || 'adminAuthClient',
   clientSecret: process.env['OAUTH_CLIENT_SECRET'],
-  redirectUri: `${BASE_URL}/api/callback`,
+  redirectUri: `${BASE_URL}/oauth/callback`,
   scope: 'user:read product:read'
 };
-
-// /api/login
+console.log(OAUTH_CONFIG.clientSecret)
 router.get('/login', (req, res) => {
   (req.session as any).codeVerifier = undefined;
   (req.session as any).state = undefined;
@@ -53,7 +55,7 @@ router.get('/login', (req, res) => {
 });
 
 // /api/callback
-router.get('/callback', async (req, res) => {
+router.get('/oauth/callback', async (req, res) => {
   const { code, state, error, error_description } = req.query;
   if (error) {
     delete (req.session as any).oauthState;
@@ -122,7 +124,7 @@ router.get('/callback', async (req, res) => {
 });
 
 // /api/refresh
-router.post('/refresh', async (req, res) => {
+router.post('/oauth/refresh', async (req, res) => {
   const refreshToken = (req.session as any).refreshToken;
   if (!refreshToken) {
     return res.status(401).json({ error: 'No refresh token available' });

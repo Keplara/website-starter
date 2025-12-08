@@ -1,4 +1,4 @@
-<div class="charts-wrapper dynamic-charts">
+<div class="charts-wrapper dynamic-charts" *ngIf="isBrowser">
   <div class="chart-card pie-chart-card">
     <h3>Overview (Pie Chart)</h3>
     <div class="chart-canvas-wrapper">
@@ -19,4 +19,7 @@
       </canvas>
     </div>
   </div>
+</div>
+<div *ngIf="!isBrowser" class="charts-wrapper">
+  <p>Loading charts...</p>
 </div>

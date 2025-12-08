@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { ChartData } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
@@ -7,10 +8,15 @@ import { BaseChartDirective } from 'ng2-charts';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   standalone: true,
-  imports: [BaseChartDirective]
+  imports: [BaseChartDirective, CommonModule]
 })
-  
+
 export class DashboardComponent {
+  isBrowser: boolean;
+
+  constructor(@Inject(PLATFORM_ID) platformId: Object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   pieChartData: ChartData<'pie', number[], string> = {
     labels: ['Users', 'Products', 'IAM', 'Cases'],

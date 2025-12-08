@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { AddUserDialogComponent } from './add-user-dialog.component';
 
 export interface User {
   username: string;
@@ -24,7 +26,7 @@ export interface User {
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatListModule, MatButtonModule, RouterLink],
+  imports: [CommonModule, MatDialogModule, MatListModule, MatButtonModule, RouterLink, MatIconModule, AddUserDialogComponent],
   templateUrl: './user-list.component.html'
 })
 export class UserListComponent {
@@ -86,8 +88,32 @@ export class UserListComponent {
     }
   ];
 
+  constructor(private dialog: MatDialog, private router: Router) { }
 
-  constructor(private dialog: MatDialog, private router: Router) {}
+  addUser() {
+    const dialogRef = this.dialog.open(AddUserDialogComponent, {
+      width: '400px'
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const now = new Date().toISOString().slice(0, 10);
+        this.users = [
+          ...this.users,
+          {
+            username: result.username,
+            firstname: result.firstname,
+            lastname: result.lastname,
+            age: Number(result.age),
+            createdOn: now,
+            modifiedOn: now,
+            createdBy: 'admin',
+            modifiedBy: 'admin',
+            avatar: 'https://material.angular.dev/assets/img/examples/shiba1.jpg'
+          }
+        ];
+      }
+    });
+  }
 
   editUser(user: User) {
     this.router.navigate([user.username, 'edit'], { relativeTo: undefined });
@@ -101,6 +127,6 @@ export class UserListComponent {
       }
     });
   }
-  
+
   // displayedColumns is not needed for mat-list
 }

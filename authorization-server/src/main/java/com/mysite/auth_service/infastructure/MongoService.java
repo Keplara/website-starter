@@ -42,13 +42,18 @@ public class MongoService {
     this.roleRepository = roleRepository;
   }
 
-  public Boolean saveMongoTestRecord(TestMongoRecord record) {
-    Optional<TestMongoRecord> existingRecord = testRecordsRepository.findById(record.getId());
-    if (existingRecord.isPresent()) {
-      return false; // record exists
+  public Boolean saveMongoTestRecord(@NonNull TestMongoRecord record) {
+    String recordId = record.getId();
+    if (recordId != null) {
+      Optional<TestMongoRecord> existingRecord = testRecordsRepository.findById(recordId);
+      if (existingRecord.isPresent()) {
+        return false; // record exists
+      }
+      testRecordsRepository.save(record);
+      return true;
+    } else {
+      throw new IllegalArgumentException("Record ID must not be null");
     }
-    testRecordsRepository.save(record);
-    return true;
   }
 
   public User createUser(PendingUser userData) {
@@ -106,7 +111,7 @@ public class MongoService {
   /**
    * Get role by ID
    */
-  public Role getRole(String roleId) {
+  public Role getRole(@NonNull String roleId) {
     return roleRepository.findById(roleId).orElse(null);
   }
 
@@ -120,7 +125,7 @@ public class MongoService {
   /**
    * Get all scopes for a role
    */
-  public Set<String> getRoleScopes(String roleId) {
+  public Set<String> getRoleScopes(@NonNull String roleId) {
     Role role = roleRepository.findById(roleId).orElse(null);
     if (role != null && role.getScopes() != null) {
       return new HashSet<>(role.getScopes());
@@ -144,7 +149,9 @@ public class MongoService {
       // Add scopes from roles in the group
       if (group.getRoleIds() != null) {
         for (String roleId : group.getRoleIds()) {
-          allScopes.addAll(getRoleScopes(roleId));
+          if (roleId != null) {
+            allScopes.addAll(getRoleScopes(roleId));
+          }
         }
       }
     }
@@ -162,9 +169,12 @@ public class MongoService {
     for (Group group : groups) {
       if (group.getRoleIds() != null) {
         for (String roleId : group.getRoleIds()) {
-          Role role = getRole(roleId);
-          if (role != null) {
-            roleNames.add(role.getName());
+          if (roleId != null) {
+
+            Role role = getRole(roleId);
+            if (role != null) {
+              roleNames.add(role.getName());
+            }
           }
         }
       }

@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, PLATFORM_ID, Inject } from '@angular/core';
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -27,7 +27,7 @@ import { UserService } from '../services/user.service';
   styleUrls: ['navBar.component.scss'],
   standalone: true,
   // changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatToolbarModule, RouterLink, LayoutModule, ProductListItem, MatListModule, MatButtonModule, MatIconModule, CommonModule, SearchBoxComponent],
+  imports: [MatToolbarModule, RouterLink, LayoutModule, ProductListItem, MatListModule, MatButtonModule, MatIconModule, CommonModule],
 })
 export class NavBar implements OnInit {
   backgroundColor: string = "--primary-800";
@@ -48,7 +48,8 @@ export class NavBar implements OnInit {
     private location: Location,
     private router: Router,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
   ngOnInit(): void {
@@ -57,24 +58,18 @@ export class NavBar implements OnInit {
       this.isLoggedIn = loggedIn;
     });
 
-    // Listen to route changes
-    this.router.events
-      .pipe(
-        filter(event => event instanceof NavigationEnd)
-      )
-      .subscribe(() => {
-        this.isLoggedIn = this.authService.isLoggedIn();
+    // Only observe breakpoints in browser (uses media queries not available during SSR)
+    if (isPlatformBrowser(this.platformId)) {
+      this.breakpointObserver.observe([
+        '(max-width: 700px)',
+      ]).subscribe(result => {
+        if (result.breakpoints['(max-width: 700px)']) {
+          this.isMobile = true;
+        } else {
+          this.isMobile = false;
+        }
       });
-
-    this.breakpointObserver.observe([
-      '(max-width: 700px)',
-    ]).subscribe(result => {
-      if (result.breakpoints['(max-width: 700px)']) {
-        this.isMobile = true;
-      } else {
-        this.isMobile = false;
-      }
-    });
+    }
 
     // Subscribe to user details observable
     this.userService.userDetails$.subscribe({
@@ -87,12 +82,16 @@ export class NavBar implements OnInit {
         this.userError = err?.error?.error || 'Failed to fetch user details';
       }
     });
-    // Fetch user details on init
-    this.userService.fetchUserDetails().subscribe({
-      error: (err) => {
-        // Error already handled in userDetails$ subscription
-      }
-    });
+
+    // Initial fetch on init (browser only)
+    if (isPlatformBrowser(this.platformId)) {
+      this.userService.fetchUserDetails().subscribe({
+        error: () => {
+          // Error already handled in userDetails$ subscription
+        }
+      });
+    }
+
   }
 
   // Expose hasScope/hasRole for template use
@@ -109,7 +108,7 @@ export class NavBar implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  logout(){
+  logout() {
     this.authService.logout();
   }
 }

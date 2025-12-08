@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from "@angular/router";
+import { RouterLink, RouterOutlet } from "@angular/router";
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss'],
   standalone: true,
-  imports: [RouterOutlet]
+  imports: [RouterOutlet, RouterLink, MatButtonModule, MatIconModule]
 })
-export class UsersComponent {}
+export class UsersComponent { }
