@@ -26,6 +26,9 @@ public class ClientConfig {
 	@Value("${local.adminAuthClientSecret}")
 	private String adminAuthClientSecret;
 
+	@Value("${local.iamAuthClientSecret}")
+	private String iamAuthClientSecret;
+
 	private PasswordEncoder passwordEncoder;
 
 	public ClientConfig(PasswordEncoder passwordEncoder) {
@@ -69,6 +72,7 @@ public class ClientConfig {
 						.build())
 				.build();
 
+		// Used for root users
 		RegisteredClient adminAuthClient = RegisteredClient.withId(UUID.randomUUID().toString())
 				.clientId("adminAuthClient")
 				.clientSecret(passwordEncoder.encode(adminAuthClientSecret))
@@ -96,8 +100,31 @@ public class ClientConfig {
 						.build())
 				.build();
 
+		RegisteredClient iamAuthClient = RegisteredClient.withId(UUID.randomUUID().toString())
+				.clientId("iamAuthClient")
+				.clientSecret(passwordEncoder.encode(iamAuthClientSecret))
+				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+				.redirectUris(uris -> {
+					uris.add(strippedAdminClientBaseURL + "/oauth/callback");
+				})
+				.postLogoutRedirectUri(strippedAdminClientBaseURL)
+				.scope(OidcScopes.PROFILE)
+				.tokenSettings(TokenSettings.builder()
+						.authorizationCodeTimeToLive(Duration.ofMinutes(2))
+						.accessTokenTimeToLive(Duration.ofMinutes(30))
+						.refreshTokenTimeToLive(Duration.ofHours(1))
+						.reuseRefreshTokens(false)
+						.build())
+				.clientSettings(ClientSettings.builder()
+						.requireAuthorizationConsent(false)
+						.requireProofKey(true)
+						.build())
+				.build();
+
 		// admin auth client
-		return new RedisRegisteredClientRepository(redisTemplate, userAuthClient, adminAuthClient);
+		return new RedisRegisteredClientRepository(redisTemplate, userAuthClient, adminAuthClient, iamAuthClient);
 	}
 
 }

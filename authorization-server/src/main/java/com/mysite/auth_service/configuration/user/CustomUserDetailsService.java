@@ -32,6 +32,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                     String.format("User with username or email %s could not be found.", usernameOrEmailAddress));
         }
 
-        return new AdminUserDetails(foundUser);
+        return new CustomUserDetails(foundUser);
     }
 }

@@ -34,7 +34,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.KeyPairGenerator;
 
-import com.mysite.auth_service.configuration.user.AdminUserDetails;
+import com.mysite.auth_service.configuration.user.CustomUserDetails;
 import com.mysite.auth_service.configuration.user.CustomUserDetailsService;
 import com.mysite.auth_service.configuration.validation.CustomRedirectUriValidator;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -164,10 +164,10 @@ public class OAuth2SecurityConfig {
 							.map(auth -> auth.replaceFirst("^SCOPE_", ""))
 							.collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
 
-					// Extract userId from AdminUserDetails if principal contains it
+					// Extract userId from CustomUserDetails if principal contains it
 					String userId = null;
-					if (principal.getPrincipal() instanceof AdminUserDetails) {
-						userId = ((AdminUserDetails) principal.getPrincipal()).getUserId();
+					if (principal.getPrincipal() instanceof CustomUserDetails) {
+						userId = ((CustomUserDetails) principal.getPrincipal()).getUserId();
 					}
 
 					// Put claims directly, no filtering against requested scopes

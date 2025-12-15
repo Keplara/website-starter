@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  redis-internal:
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-internal
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-internal-data:/data
+  redis-internal-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-internal-staging
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis-internal-staging-data:/data
+  redis-internal-production:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    container_name: redis-internal-production
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-internal-production-data:/data
+
+volumes:
+  redis-internal-data:
+  redis-internal-production-data:
+  redis-internal-staging-data:

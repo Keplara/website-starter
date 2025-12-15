@@ -21,10 +21,8 @@ import com.mysite.auth_service.configuration.responseObjects.BasicResponse;
 import com.mysite.auth_service.infastructure.MongoService;
 import com.mysite.auth_service.infastructure.RedisService;
 import com.mysite.auth_service.infastructure.SimpleEmailService;
-import com.mysite.auth_service.model.PendingUser;
 import com.mysite.auth_service.model.mongo.User;
 import com.mysite.auth_service.model.request.CreateIAMUserRequest;
-import com.mysite.auth_service.model.request.CreateUserRequest;
 
 @Service
 public class UserService {
@@ -52,6 +50,7 @@ public class UserService {
     this.mongoService = mongoService;
   }
 
+  // TODO: Removed IAM Request
   public Boolean createIAMUserRequest(CreateIAMUserRequest userRequest, String authClientBaseUrl)
       throws AuthApiException {
     // Check if a user with the provided email already exists
@@ -69,125 +68,138 @@ public class UserService {
           new SimpleGrantedAuthority("SCOPE_metrics:read"),
           new SimpleGrantedAuthority("ROLE_ADMIN"));
 
-      String userBaseURLToken = this.redisService.storeIAMUser(
-          new PendingUser(
-              emailAddress,
-              userRequest.getUsername(),
-              this.passwordEncoder.encode(userRequest.getPassword()), authorities));
+      // String userBaseURLToken = this.redisService.storeIAMUser(
+      // new PendingUser(
+      // emailAddress,
+      // userRequest.getUsername(),
+      // this.passwordEncoder.encode(userRequest.getPassword()), authorities));
 
       // emailService.sendUserVerificationEmail(emailAddress, userBaseURLToken);
       // Build the verification URL with the token
-      String userVerificationUrl = String.format("%s/auth/iam/create-user/confirm?token=%s", adminClientBaseUrl,
-          userBaseURLToken);
+      // String userVerificationUrl =
+      // String.format("%s/auth/iam/create-user/confirm?token=%s", adminClientBaseUrl,
+      // userBaseURLToken);
 
       // Email body with instructions for verifying the user
-      String body = String.format(
-          "Please click the link below to verify your user.\n%s",
-          userVerificationUrl);
+      // String body = String.format(
+      // "Please click the link below to verify your user.\n%s",
+      // userVerificationUrl);
 
-      // Send the verification email
-      simpleEmailService.sendEmail(
-          userRequest.getEmailAddress(),
-          "User Verification",
-          body);
+      // // Send the verification email
+      // simpleEmailService.sendEmail(
+      // userRequest.getEmailAddress(),
+      // "User Verification",
+      // body);
 
       // Return a success response to the client
       return true;
     }
   }
 
-  public Boolean createUserRequest(CreateUserRequest userRequest, String authClientBaseUrl)
-      throws AuthApiException {
-    // Check if a user with the provided email already exists
-    User existingUserByEmail = mongoService.getUser(userRequest.getEmailAddress());
-    if (existingUserByEmail != null) {
-      // If user exists, throw exception to prevent duplicate user creation
-      throw new AuthApiException(
-          String.format("User with email '%s' already exists.", existingUserByEmail.getEmailAddress()));
-    } else {
-      // Extract email from request
-      String emailAddress = userRequest.getEmailAddress();
-      Collection<GrantedAuthority> authorities = List.of(
-          new SimpleGrantedAuthority("ROLE_USER"),
-          new SimpleGrantedAuthority("SCOPE_product:read"),
-          new SimpleGrantedAuthority("SCOPE_auth.user:password-reset:create"),
-          new SimpleGrantedAuthority("SCOPE_auth.user:update"),
-          new SimpleGrantedAuthority("SCOPE_user:read"));
-      // Create user verification data and store in Redis
-      // Token will expire automatically after a configured duration
+  // // TODO: Migrate over to User Resource Server
+  // public Boolean createUserRequest(CreateUserRequest userRequest, String
+  // authClientBaseUrl)
+  // throws AuthApiException {
+  // // Check if a user with the provided email already exists
+  // User existingUserByEmail =
+  // mongoService.getUser(userRequest.getEmailAddress());
+  // if (existingUserByEmail != null) {
+  // // If user exists, throw exception to prevent duplicate user creation
+  // throw new AuthApiException(
+  // String.format("User with email '%s' already exists.",
+  // existingUserByEmail.getEmailAddress()));
+  // } else {
+  // // Extract email from request
+  // String emailAddress = userRequest.getEmailAddress();
+  // Collection<GrantedAuthority> authorities = List.of(
+  // new SimpleGrantedAuthority("ROLE_USER"),
+  // new SimpleGrantedAuthority("SCOPE_product:read"),
+  // new SimpleGrantedAuthority("SCOPE_auth.user:password-reset:create"),
+  // new SimpleGrantedAuthority("SCOPE_auth.user:update"),
+  // new SimpleGrantedAuthority("SCOPE_user:read"));
+  // // Create user verification data and store in Redis
+  // // Token will expire automatically after a configured duration
 
-      String userBaseURLToken = this.redisService.storeUser(
-          new PendingUser(
-              emailAddress,
-              userRequest.getUsername(),
-              this.passwordEncoder.encode(userRequest.getPassword()), authorities));
+  // String userBaseURLToken = this.redisService.storeUser(
+  // new PendingUser(
+  // emailAddress,
+  // userRequest.getUsername(),
+  // this.passwordEncoder.encode(userRequest.getPassword()), authorities));
 
-      // emailService.sendUserVerificationEmail(emailAddress, userBaseURLToken);
-      // Build the verification URL with the token
-      String userVerificationUrl = String.format("%s/auth/create-user/confirm?token=%s", authClientBaseUrl,
-          userBaseURLToken);
+  // // emailService.sendUserVerificationEmail(emailAddress, userBaseURLToken);
+  // // Build the verification URL with the token
+  // String userVerificationUrl =
+  // String.format("%s/auth/create-user/confirm?token=%s", authClientBaseUrl,
+  // userBaseURLToken);
 
-      // Email body with instructions for verifying the user
-      String body = String.format(
-          "Please click the link below to verify your user.\n%s",
-          userVerificationUrl);
+  // // Email body with instructions for verifying the user
+  // String body = String.format(
+  // "Please click the link below to verify your user.\n%s",
+  // userVerificationUrl);
 
-      // Send the verification email
-      simpleEmailService.sendEmail(
-          userRequest.getEmailAddress(),
-          "User Verification",
-          body);
+  // // Send the verification email
+  // simpleEmailService.sendEmail(
+  // userRequest.getEmailAddress(),
+  // "User Verification",
+  // body);
 
-      // Return a success response to the client
-      return true;
-    }
-  }
+  // // Return a success response to the client
+  // return true;
+  // }
+  // }
 
-  public Boolean verifyUserCreationToken(String token) throws AuthApiException {
-    // Retrieve the user verification data from Redis using the token.
-    // If the token has expired or does not exist, getStoredUser() returns null.
-    PendingUser user = redisService.getStoredUser(token);
-    // Return true if the token is valid (exists), false if it has expired or is
-    // invalid.
-    return user != null;
-  }
+  // // TODO: Migrate over to User Resource Server
+  // public Boolean verifyUserCreationToken(String token) throws AuthApiException
+  // {
+  // // Retrieve the user verification data from Redis using the token.
+  // // If the token has expired or does not exist, getStoredUser() returns null.
+  // PendingUser user = redisService.getStoredUser(token);
+  // // Return true if the token is valid (exists), false if it has expired or is
+  // // invalid.
+  // return user != null;
+  // }
 
-  public User confirmUserCreation(String token, String authClientBaseUrl) throws AuthApiException {
+  // // TODO: Migrate over to User Resource Server
+  // public User confirmUserCreation(String token, String authClientBaseUrl)
+  // throws AuthApiException {
 
-    // Retrieve the user verification data from Redis using the token
-    // If the token has expired or is invalid, getStoredUser() will return null
-    PendingUser userData = redisService.getStoredUser(token);
-    if (userData == null) {
-      throw new AuthApiException("Token has expired");
-    }
+  // // Retrieve the user verification data from Redis using the token
+  // // If the token has expired or is invalid, getStoredUser() will return null
+  // PendingUser userData = redisService.getStoredUser(token);
+  // if (userData == null) {
+  // throw new AuthApiException("Token has expired");
+  // }
 
-    // Check if a user with the same username already exists
-    // This handles rare race conditions if two requests try to confirm the same
-    // token
-    User existingUser = mongoService.getUser(userData.getUsername().toLowerCase());
+  // // Check if a user with the same username already exists
+  // // This handles rare race conditions if two requests try to confirm the same
+  // // token
+  // User existingUser =
+  // mongoService.getUser(userData.getUsername().toLowerCase());
 
-    // Immediately expire the token to prevent it from being reused
+  // // Immediately expire the token to prevent it from being reused
 
-    // If the user already exists, throw an exception
-    if (existingUser != null) {
-      throw new AuthApiException(String.format(
-          "User '%s' has already been created.", existingUser.getUserId()));
-    }
+  // // If the user already exists, throw an exception
+  // if (existingUser != null) {
+  // throw new AuthApiException(String.format(
+  // "User '%s' has already been created.", existingUser.getUserId()));
+  // }
 
-    redisService.expireUserToken(token);
-    // Create the user in the system with the verified username, email, and password
-    User createdUser = mongoService.createUser(userData);
+  // redisService.expireUserToken(token);
+  // // Create the user in the system with the verified username, email, and
+  // password
+  // User createdUser = mongoService.createUser(userData);
 
-    // Send a welcome email to the newly created user
-    simpleEmailService.sendEmail(
-        userData.getEmailAddress(),
-        String.format("Welcome to %s!", companyName),
-        "Thank you for joining us");
+  // // Send a welcome email to the newly created user
+  // simpleEmailService.sendEmail(
+  // userData.getEmailAddress(),
+  // String.format("Welcome to %s!", companyName),
+  // "Thank you for joining us");
 
-    // Return the response to the client
-    return createdUser;
-  }
+  // // Return the response to the client
+  // return createdUser;
+  // }
 
+  // TODO: Migrate over to User Resource Server
   public Boolean updateUserPassword(String emailOrUsername, String newPassword) {
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -205,6 +217,7 @@ public class UserService {
    * Password Reset Functionality
    * ===========================
    */
+  // TODO: Migrate over to User Resource Server
   public Boolean passwordResetRequest(String emailOrUsername, String authClientBaseUrl) throws AuthApiException {
     User existingUser = mongoService.getUser(emailOrUsername);
     if (existingUser == null) {
@@ -227,11 +240,13 @@ public class UserService {
     return true;
   }
 
+  // TODO: Migrate over to User Resource Server
   public Boolean verifyPasswordResetToken(@RequestParam String token) throws AuthApiException {
     String emailAddress = redisService.getStoredPasswordResetUser(token);
     return emailAddress != null;
   }
 
+  // TODO: Migrate over to User Resource Server
   public String confirmPasswordReset(String token, String newPassword)
       throws AuthApiException, URISyntaxException {
     String emailAddress = redisService.getStoredPasswordResetUser(token);
@@ -249,13 +264,6 @@ public class UserService {
     return emailAddress;
   }
 
-  // Delete acccount
-  /// Require scope user.user.delete
-  /// only delete the user of the logged in user which is store in the redis
-  // token
-  /// // delete current session after delete user
-  /// revoke access token
-
   /**
    * Delete the currently logged-in user user.
    * 
@@ -269,6 +277,8 @@ public class UserService {
    * 3. Delete any active sessions from Redis.
    * 4. Revoke the access token.
    */
+  // TODO: Migrate over to User Resource Server
+
   public ResponseEntity<BasicResponse> deleteUser(UserDetails userDetails, String authHeader) throws AuthApiException {
 
     if (userDetails == null) {

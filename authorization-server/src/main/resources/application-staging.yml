@@ -30,6 +30,7 @@ local:
   authClientBaseUrl: ${AUTH_CLIENT_BASE_URL}
   userClientBaseUrl: ${USER_CLIENT_BASE_URL}
   adminAuthClientSecret: ${ADMIN_AUTH_CLIENT_SECRET}
+  iamAuthClientSecret: ${IAM_AUTH_CLIENT_SECRET}
   adminClientBaseUrl: ${ADMIN_CLIENT_BASE_URL}
   jwt:
     secretKey: ${JWT_KEY}

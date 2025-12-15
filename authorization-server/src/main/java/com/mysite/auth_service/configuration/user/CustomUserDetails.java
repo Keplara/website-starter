@@ -1,27 +1,24 @@
-package com.mysite.auth_service.model.mongo;
+package com.mysite.auth_service.configuration.user;
 
-// import java.time.LocalDate;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.HashMap;
+import com.mysite.auth_service.model.mongo.User;
 
-@Document("user")
-public class User {
-  @Id
+public class CustomUserDetails implements UserDetails {
+
   private String userId;
 
   private String password;
 
-  @Indexed(unique = true)
   private String emailAddress;
 
-  @Indexed(unique = true)
   private String username;
 
   // TODO
@@ -32,14 +29,41 @@ public class User {
 
   private Collection<? extends GrantedAuthority> authorities;
 
-  private java.util.List<String> groupIds;
-
   private Boolean expired;
   private Boolean accountLocked;
   private Boolean credentialsExpired;
   private Boolean enabled;
 
-  public User() {
+  public CustomUserDetails() {
+  }
+
+  public CustomUserDetails(User user) {
+    this.userId = user.getUserId();
+    this.emailAddress = user.getEmailAddress();
+    this.username = user.getEmailAddress();
+    this.password = user.getPassword();
+    this.authorities = user.getAuthorities();
+  }
+
+  public CustomUserDetails(String username, String emailAddress, String password) {
+    this.password = password;
+    this.emailAddress = emailAddress;
+    this.username = username;
+    this.authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
+    this.expired = false;
+    this.accountLocked = false;
+    this.credentialsExpired = false;
+    this.enabled = true;
+  }
+
+  public CustomUserDetails(String username, String emailAddress) {
+    this.emailAddress = emailAddress;
+    this.username = username;
+    this.authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    this.expired = false;
+    this.accountLocked = false;
+    this.credentialsExpired = false;
+    this.enabled = true;
   }
 
   public Map<String, Object> getClaims() {
@@ -47,7 +71,7 @@ public class User {
     claims.put("userId", this.userId);
     claims.put("username", this.username);
     claims.put("email", this.emailAddress);
-    claims.put("authorities", this.authorities);
+    claims.put("roles", this.authorities);
     claims.put("enabled", this.enabled);
     claims.put("authenticatorEnabled", this.authenticatorEnabled);
     return claims;
@@ -65,40 +89,39 @@ public class User {
     return emailAddress != null ? emailAddress : username;
   }
 
+  @Override
   public boolean isAccountNonExpired() {
     return !this.expired;
   }
 
+  @Override
   public boolean isAccountNonLocked() {
     return !this.accountLocked;
   }
 
+  @Override
   public boolean isCredentialsNonExpired() {
     return !this.credentialsExpired;
   }
 
+  @Override
   public boolean isEnabled() {
     return this.enabled;
   }
 
+  @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return authorities;
   }
 
+  @Override
   public String getPassword() {
     return this.password;
   }
 
+  @Override
   public String getUsername() {
     return this.username;
-  }
-
-  public java.util.List<String> getGroupIds() {
-    return this.groupIds;
-  }
-
-  public void setGroupIds(java.util.List<String> groupIds) {
-    this.groupIds = groupIds;
   }
 
 }

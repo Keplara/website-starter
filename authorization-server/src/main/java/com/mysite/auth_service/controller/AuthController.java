@@ -91,42 +91,8 @@ public class AuthController {
 	 *                          email sending fails.
 	 */
 
-	@PostMapping("/create-user/request")
-	public BasicResponse createUserRequest(@RequestBody(required = false) CreateUserRequest userRequest)
-			throws AuthApiException, IOException, MessagingException, GeneralSecurityException {
-		Boolean isUserTokenCreated = userService.createUserRequest(userRequest, authClientBaseUrl);
-		// If user token creation failed, throw an exception
-		if (!isUserTokenCreated) {
-			throw new AuthApiException("User token could not be created.");
-		}
-
-		return BasicResponse.builder()
-				.message("Thank you for signing up with us! Please look out for an email to verify your user.")
-				.status(HttpStatus.OK)
-				.build();
-	}
-
-	@GetMapping("/create-user/verify")
-	public ResponseEntity<Map<String, Object>> verifyUserCreationToken(@RequestParam String token)
-			throws AuthApiException {
-		return ResponseEntity
-				.ok()
-				.body(Map.of(
-						"timestamp", LocalDateTime.now(),
-						"valid", userService.verifyUserCreationToken(token)));
-	}
-
-	@PostMapping("/create-user/confirm")
-	public ResponseEntity<Object> confirmUser(@RequestParam String token)
-			throws AuthApiException, URISyntaxException {
-		User createdUser = userService.confirmUserCreation(token, authClientBaseUrl);
-		// create-user not work --- IGNORE ---
-		return ResponseEntity
-				.ok()
-				.body(Map.of(
-						"timestamp", LocalDateTime.now(),
-						"message", String.format("User has been created for %s.", createdUser.getEmailAddress())));
-	}
+	// User registration and verification routes have been moved to
+	// user-resource-server
 
 	/*
 	 * ===========================

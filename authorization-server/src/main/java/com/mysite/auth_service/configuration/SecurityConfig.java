@@ -74,17 +74,21 @@ public class SecurityConfig {
 
 				.authorizeHttpRequests((authorize) -> authorize
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						.requestMatchers(HttpMethod.POST, "/auth/create-user/request").permitAll()
-						.requestMatchers(HttpMethod.GET, "/auth/create-user/verify").permitAll()
-						.requestMatchers(HttpMethod.POST, "/auth/create-user/confirm").permitAll()
+						// .requestMatchers(HttpMethod.POST, "/auth/create-user/request").permitAll()
+						// .requestMatchers(HttpMethod.GET, "/auth/create-user/verify").permitAll()
+						// .requestMatchers(HttpMethod.POST, "/auth/create-user/confirm").permitAll()
 						.requestMatchers("/.well-known/**").permitAll()
 						.requestMatchers("/css/**", "/js/**", "/assets/**").permitAll()
-						.requestMatchers(HttpMethod.POST, "/auth/password-reset/request").permitAll()
-						.requestMatchers(HttpMethod.GET, "/auth/password-reset/verify").permitAll()
-						.requestMatchers(HttpMethod.POST, "/auth/password-reset/confirm").permitAll()
+						// TODO: Migrate password reset endpoints to user resource server
+						// .requestMatchers(HttpMethod.POST, "/auth/password-reset/request").permitAll()
+						// .requestMatchers(HttpMethod.GET, "/auth/password-reset/verify").permitAll()
+						// .requestMatchers(HttpMethod.POST, "/auth/password-reset/confirm").permitAll()
 						.requestMatchers(HttpMethod.POST, "/oauth2/authorize").permitAll()
 						.requestMatchers("/.well-known/jwks.json").permitAll()
-						.requestMatchers(HttpMethod.POST, "/auth/iam/create-user/request").hasRole("ROOT")
+						// TODO: Migrate IAM User creation and role assumption to IAM service
+						// .requestMatchers(HttpMethod.POST,
+						// "/auth/iam/create-user/request").hasRole("ROOT")
+						// .requestMatchers(HttpMethod.POST, "/auth/roles/assume").authenticated()
 						.requestMatchers("/send-test-email").permitAll()
 						.requestMatchers("/test-mongo-record").permitAll()
 						.requestMatchers("/error", "/error/**").permitAll()

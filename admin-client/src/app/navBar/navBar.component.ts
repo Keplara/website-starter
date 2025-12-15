@@ -5,18 +5,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Location } from '@angular/common';
-import { Router, NavigationEnd } from '@angular/router';
-import { SearchBoxComponent } from "../sharedComponents/searchBox/searchBox.component";
-import { filter } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { CoreService } from '../services/core.service';
 import { RouterLink } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
-import { Product } from '../interfaces/core.interface';
 import { environment } from '../../environments/environment';
 import { ProductListItem } from '../sharedComponents/productListItem/productListItem.component';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
+
+// TODO: Add a dropdown in the admin client to select an IAM user when logged in as Root.
 
 /**
  * @title Basic toolbar
@@ -27,7 +26,7 @@ import { UserService } from '../services/user.service';
   styleUrls: ['navBar.component.scss'],
   standalone: true,
   // changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatToolbarModule, RouterLink, LayoutModule, ProductListItem, MatListModule, MatButtonModule, MatIconModule, CommonModule],
+  imports: [MatToolbarModule, RouterLink, LayoutModule, MatListModule, MatButtonModule, MatIconModule, CommonModule],
 })
 export class NavBar implements OnInit {
   backgroundColor: string = "--primary-800";

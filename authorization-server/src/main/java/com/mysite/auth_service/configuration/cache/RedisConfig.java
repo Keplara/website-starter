@@ -17,10 +17,9 @@ import org.springframework.session.data.redis.RedisSessionExpirationStore;
 import org.springframework.session.data.redis.SortedSetRedisSessionExpirationStore;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
-import com.mysite.auth_service.model.PendingUser;
-
 import org.springframework.beans.factory.annotation.Value;
 
+// move reset password over to user resource server. IAM reset passowrd will be done in the iam service
 @Configuration
 @EnableCaching
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 1800)
@@ -54,16 +53,6 @@ public class RedisConfig {
     public RedisTemplate<String, RegisteredClient> redisRegisteredClientTemplate(
             JedisConnectionFactory jedisConnectionFactory) {
         RedisTemplate<String, RegisteredClient> template = new RedisTemplate<>();
-        template.setConnectionFactory(jedisConnectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.afterPropertiesSet();
-
-        return template;
-    }
-
-    @Bean
-    public RedisTemplate<String, PendingUser> redisPendingUserTemplate(JedisConnectionFactory jedisConnectionFactory) {
-        RedisTemplate<String, PendingUser> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.afterPropertiesSet();
