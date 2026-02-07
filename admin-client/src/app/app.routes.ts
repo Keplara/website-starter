@@ -19,6 +19,7 @@ import { UserEditComponent } from './views/users/user-edit.component';
 export const routes: Routes = [
   {
     path: '',
+
     component: HomeViewComponent,
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -26,6 +27,7 @@ export const routes: Routes = [
       {
         path: 'users',
         component: UsersComponent,
+        canActivate: [authGuard],
         children: [
           { path: '', component: UserListComponent },
           { path: 'create', component: UserCreateComponent },
@@ -36,6 +38,7 @@ export const routes: Routes = [
       {
         path: 'products',
         component: ProductsComponent,
+        canActivate: [authGuard],
         children: [
           { path: '', component: ProductListComponent },
           { path: 'create', component: ProductCreateComponent },
@@ -43,8 +46,8 @@ export const routes: Routes = [
           { path: ':id/edit', component: ProductEditComponent },
         ]
       },
-      { path: 'iam', component: IAMComponent },
-      { path: 'cases', component: CasesComponent },
+      { path: 'iam', component: IAMComponent, canActivate: [authGuard] },
+      { path: 'cases', component: CasesComponent, canActivate: [authGuard] },
     ]
   },
   {

@@ -6,18 +6,30 @@ import { RoleModel } from './models';
 const router = express.Router();
 
 // Create Role (admin action)
-router.post('/roles', requireAction('role:Create', 'role:*'), async (req, res) => {
+router.post('/roles', requireAction('iam:RoleCreate', 'iam:Role*'), async (req, res) => {
   try {
-    const { name, description, permissions, policies } = req.body;
+    const { name, description, trustPolicy, policies } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'name is required' });
     }
 
+    const nowIso = new Date().toISOString();
+    const defaultTrustPolicy: any = {
+      Version: nowIso,
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: '*',
+          Action: 'iam:AssumeRole',
+        },
+      ],
+    };
+
     const role = await RoleModel.create({
       name,
       description: description || '',
-      permissions: permissions || [],
+      trustPolicy: trustPolicy || defaultTrustPolicy,
       policies: policies || [],
     });
 

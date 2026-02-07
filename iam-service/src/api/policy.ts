@@ -13,6 +13,13 @@ router.post('/policies', requireAction('policy:Create', 'policy:*'), async (req,
       return res.status(400).json({ error: 'Invalid policy: name and actions are required.' });
     }
 
+    // Auto-include iam:AssumeRole for admin policies
+    const isAdminNamed = typeof policy.name === 'string' && /admin/i.test(policy.name);
+    const hasAssumeRole = policy.action.includes('iam:AssumeRole') || policy.action.includes('AssumeRole:*') || policy.action.includes('assume:*');
+    if (isAdminNamed && !hasAssumeRole) {
+      policy.action = [...policy.action, 'iam:AssumeRole'];
+    }
+
     const created = await PolicyModel.create(policy);
     return res.status(201).json({ message: 'Policy created', data: created });
   } catch (err: any) {

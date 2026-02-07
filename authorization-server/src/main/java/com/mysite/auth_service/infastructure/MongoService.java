@@ -1,22 +1,13 @@
 package com.mysite.auth_service.infastructure;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.lang.NonNull;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.mysite.auth_service.model.mongo.Role;
 import com.mysite.auth_service.model.mongo.TestMongoRecord;
 import com.mysite.auth_service.model.mongo.User;
-import com.mysite.auth_service.repository.RoleRepository;
 import com.mysite.auth_service.repository.TestRecordsRepository;
 import com.mysite.auth_service.repository.UserRepository;
 
@@ -25,14 +16,11 @@ public class MongoService {
 
   private final UserRepository userRepository;
   private final TestRecordsRepository testRecordsRepository;
-  private final RoleRepository roleRepository;
 
   public MongoService(UserRepository userRepository,
-      TestRecordsRepository testRecordsRepository,
-      RoleRepository roleRepository) {
+      TestRecordsRepository testRecordsRepository) {
     this.userRepository = userRepository;
     this.testRecordsRepository = testRecordsRepository;
-    this.roleRepository = roleRepository;
   }
 
   public Boolean saveMongoTestRecord(@NonNull TestMongoRecord record) {
@@ -76,31 +64,6 @@ public class MongoService {
       return true;
     }
     return false;
-  }
-
-  /**
-   * Get role by ID
-   */
-  public Role getRole(@NonNull String roleId) {
-    return roleRepository.findById(roleId).orElse(null);
-  }
-
-  /**
-   * Get role by name
-   */
-  public Role getRoleByName(String roleName) {
-    return roleRepository.findByName(roleName);
-  }
-
-  /**
-   * Get all scopes for a role
-   */
-  public Set<String> getRoleScopes(@NonNull String roleId) {
-    Role role = roleRepository.findById(roleId).orElse(null);
-    if (role != null && role.getScopes() != null) {
-      return new HashSet<>(role.getScopes());
-    }
-    return new HashSet<>();
   }
 
 }

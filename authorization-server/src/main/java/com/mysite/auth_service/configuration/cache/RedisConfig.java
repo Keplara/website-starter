@@ -19,7 +19,7 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 
 import org.springframework.beans.factory.annotation.Value;
 
-// move reset password over to user resource server. IAM reset passowrd will be done in the iam service
+// move reset password over to user resource server.
 @Configuration
 @EnableCaching
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 1800)

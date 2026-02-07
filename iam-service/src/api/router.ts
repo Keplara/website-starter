@@ -5,6 +5,7 @@ import policyRouter from './policy';
 import groupsRouter from './groups';
 import usersRouter from './users';
 import rolesRouter from './roles';
+import assumeRoleRouter from './assume-role/index';
 
 // Extend Express Request to include IAM
 declare global {
@@ -55,6 +56,8 @@ function resourceMatches(policyResource: string, requestedResource: string): boo
   return false;
 }
 
+// assess token will contain userId to grab groups and policies tied to user
+// assumed role token will contain assumedRole and will be validated and retrieve permissions via db lookup
 async function validateAccessToken(req: express.Request, res: express.Response, next: express.NextFunction) {
   const token = req.headers.authorization?.replace('Bearer ', '');
 
@@ -204,9 +207,20 @@ export function requireAction(action: string | string[], resource?: string | ((r
     const userId = req.iam?.userId;
     const allowStatements = req.iam?.allowStatements || [];
     const denyStatements = req.iam?.denyStatements || [];
+    const roles = Array.isArray(req.roles) ? req.roles : [];
+    const userAuthorities = req.authorities || [];
+    const normalizedAuthorities = userAuthorities.map((a) => a.replace('.', ':'));
 
     if (!userId) {
       return res.status(401).json({ error: 'UserId not found' });
+    }
+
+    // Root bypass: if the user has ROOT role or root authority, grant access
+    const hasRootRole = roles.some((r) => r.toUpperCase() === 'ROOT');
+    const hasRootAuthority = normalizedAuthorities.includes('root:*') || normalizedAuthorities.includes('root:all') || normalizedAuthorities.includes('iam:root');
+    if (hasRootRole || hasRootAuthority) {
+      console.log(`✓ Root access bypass for user ${userId}`);
+      return next();
     }
 
     const requiredActions = Array.isArray(action) ? action : [action];
@@ -277,6 +291,7 @@ router.use(usersRouter);
 router.use(rolesRouter);
 router.use(policyRouter);
 router.use(groupsRouter);
+router.use('/assume-role', assumeRoleRouter);
 
 // Verify action endpoint for external resource servers
 router.post('/verify-action', async (req, res) => {

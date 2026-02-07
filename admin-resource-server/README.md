@@ -16,6 +16,16 @@ npm run dev
 
 See `.env` file for configuration.
 
+### Auth settings
+- `OAUTH_SERVER_BASE_URL`: Base URL of authorization server (default `http://localhost:8084`).
+- `JWKS_URI`: JWKS endpoint (default `${OAUTH_SERVER_BASE_URL}/.well-known/jwks.json`).
+
+This service validates JWTs locally with JWKS (RS256 only). Assumed roles use session-based state:
+- To assume a role, call IAM `POST /api/assume-role` which returns `{ sessionId, expiresAt, assumedRole }`.
+- Send the session id in header `X-Assumed-Role-Session` on admin requests.
+- Admin routes require an assumed role of `Admin` and will verify the session against MongoDB.
+	- Sessions are stored in Redis with TTL; default expiration is 2 hours (override via `ASSUMED_ROLE_SESSION_TTL_SECONDS`). When expired, they self-delete.
+
 ## API Endpoints
 
 ### Policies

@@ -4,18 +4,18 @@ import jsonwebtoken from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 
 
-// Use /.well-known/jwks.json as JWKS endpoint
+// JWKS endpoint served by Spring Authorization Server: /.well-known/jwks.json
 const OAUTH_SERVER_BASE_URL = process.env['OAUTH_SERVER_BASE_URL'] || 'http://localhost:8084';
-const JWKS_URI = process.env['JWKS_URI'] || `${OAUTH_SERVER_BASE_URL}/oauth2/jwks`;
+const JWKS_URI = process.env['JWKS_URI'] || `${OAUTH_SERVER_BASE_URL}/.well-known/jwks.json`;
 
-const client = jwksClient({
+const jwks = jwksClient({
   jwksUri: JWKS_URI,
   cache: true,
   rateLimit: true
 });
 
 function getKey(header: any, callback: any) {
-  client.getSigningKey(header.kid, function(err: any, key: any) {
+  jwks.getSigningKey(header.kid, function (err: any, key: any) {
     if (err) return callback(err);
     const signingKey = key.getPublicKey();
     callback(null, signingKey);
@@ -29,9 +29,19 @@ function getKey(header: any, callback: any) {
  */
 export function verifyAccessToken(token: any) {
   return new Promise((resolve, reject) => {
-    jsonwebtoken.verify(token, getKey, { algorithms: ['RS256'] }, (err: any, decoded: any) => {
-      if (err) return reject(err);
-      resolve(decoded);
-    });
+    // Peek at header to decide verification strategy
+    const decodedUnverified: any = jsonwebtoken.decode(token, { complete: true });
+    const alg = decodedUnverified?.header?.alg;
+
+    if (alg === 'RS256') {
+      jsonwebtoken.verify(token, getKey, { algorithms: ['RS256'] }, (err: any, decoded: any) => {
+        if (err) return reject(err);
+        resolve(decoded);
+      });
+      return;
+    }
+
+    // Access tokens should not be HS256; reject non-RS256 formats here
+    reject(new Error(`Unsupported access token alg: ${alg || 'unknown'}`));
   });
 }

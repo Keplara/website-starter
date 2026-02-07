@@ -81,25 +81,6 @@ export function app(): express.Express {
   const managementApiUrl = process.env['MANAGEMENT_API_BASE_URL'] || 'http://localhost:3001';
   const resourceServerApiUrl = process.env['RESOURCE_API_BASE_URL'] || 'http://localhost:3008';
 
-  server.use('/api/management', createProxyMiddleware({
-    target: managementApiUrl,
-    changeOrigin: true,
-    pathRewrite: {
-      '^/api/management': '/api' // Keep the /api prefix
-    },
-    onProxyReq: (proxyReq, req) => {
-      // Forward access token from session when available
-      const accessToken = (req as any).session?.accessToken;
-      if (accessToken) {
-        proxyReq.setHeader('Authorization', `Bearer ${accessToken}`);
-      }
-    },
-    onError: (err, req, res) => {
-      console.error('Proxy error:', err);
-      res.status(503).json({ error: 'Management API unavailable' });
-    }
-  }));
-
   server.use('/api/resource', createProxyMiddleware({
     target: resourceServerApiUrl,
     changeOrigin: true,
@@ -111,6 +92,7 @@ export function app(): express.Express {
       const accessToken = (req as any).session?.accessToken;
       if (accessToken) {
         proxyReq.setHeader('Authorization', `Bearer ${accessToken}`);
+        console.log(accessToken);
       }
     },
     onError: (err, req, res) => {
@@ -136,7 +118,7 @@ export function app(): express.Express {
     const refreshToken = (req.session as any).refreshToken;
     const accessTokenExpiresAt = (req.session as any).accessTokenExpiresAt;
     const refreshTokenExpiresAt = (req.session as any).refreshTokenExpiresAt;
-
+    console.log("Access Token:", accessToken);
     const now = Date.now();
     const accessTokenValid = accessToken && accessTokenExpiresAt && now < accessTokenExpiresAt;
     const refreshTokenValid = refreshToken && refreshTokenExpiresAt && now < refreshTokenExpiresAt;

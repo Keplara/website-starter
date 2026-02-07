@@ -1,6 +1,5 @@
 import express from 'express';
 import { requirePermission } from './router';
-import { GroupModel, PolicyModel } from './models';
 
 const router = express.Router();
 // MOVE TO RESOURCE SERVER FOR PUBLIC ACCESS.
@@ -11,49 +10,53 @@ router.get('/user-details', requirePermission("user:read"), async (req, res) => 
 
   try {
     const userId = (req as any).userId;
-    const allowStatements: any[] = [];
-    const denyStatements: any[] = [];
-    const actions = new Set<string>();
-    const deniedActions = new Set<string>();
-
-    // Fetch groups that contain this user
-    const groups = await GroupModel.find({
-      members: userId
-    }).populate('policies');
-
-    // Aggregate policies from all groups
-    groups.forEach((group: any) => {
-      if (group.policies && Array.isArray(group.policies)) {
-        group.policies.forEach((policy: any) => {
-          const stmt = {
-            effect: policy.effect.toLowerCase(),
-            action: policy.action || [],
-            resource: policy.resource || [],
-            conditions: policy.conditions || {}
-          };
-
-          if (policy.effect.toLowerCase() === 'allow') {
-            allowStatements.push(stmt);
-            policy.action?.forEach((a: string) => actions.add(a));
-          } else if (policy.effect.toLowerCase() === 'deny') {
-            denyStatements.push(stmt);
-            policy.action?.forEach((a: string) => deniedActions.add(a));
-          }
-        });
-      }
-    });
+    const roles = req.roles || [];
+    const scopesRaw = (req as any).scopes;
+    const authoritiesRaw = (req as any).authorities || [];
+    const scopes: string[] = Array.isArray(scopesRaw)
+      ? scopesRaw
+      : typeof scopesRaw === 'string'
+        ? scopesRaw.split(/\s+/).filter(Boolean)
+        : [];
+    const authorities: string[] = (authoritiesRaw as string[]).map(a => a.replace('.', ':'));
+    const effectivePermissions = authorities.filter(a => scopes.includes(a));
 
     return res.json({
       userId,
-      actions: Array.from(actions),
-      deniedActions: Array.from(deniedActions),
-      allowStatements,
-      denyStatements,
-      roles: req.roles || []
+      roles,  
+      scopes,
+      authorities,
+      permissions: effectivePermissions,
+      assumedRole: (req as any).assumedRole || null,
+      isAssumedRoleToken: (req as any).isAssumedRoleToken === true
     });
   } catch (error) {
     console.error('[RESOURCE/user] Error fetching user info:', error);
     return res.status(500).json({ error: 'Failed to fetch user information' });
+  }
+});
+
+// Lightweight endpoint focused on permissions for UI gating
+router.get('/permissions', async (req, res) => {
+  try {
+    const scopesRaw = (req as any).scopes;
+    const authoritiesRaw = (req as any).authorities || [];
+    const scopes: string[] = Array.isArray(scopesRaw)
+      ? scopesRaw
+      : typeof scopesRaw === 'string'
+        ? scopesRaw.split(/\s+/).filter(Boolean)
+        : [];
+    const authorities: string[] = (authoritiesRaw as string[]).map(a => a.replace('.', ':'));
+    const permissions = authorities.filter(a => scopes.includes(a));
+
+    return res.json({
+      permissions,
+      roles: (req as any).roles || [],
+      assumedRole: (req as any).assumedRole || null
+    });
+  } catch (error) {
+    console.error('[RESOURCE/user] Error generating permissions:', error);
+    return res.status(500).json({ error: 'Failed to compute permissions' });
   }
 });
 

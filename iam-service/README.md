@@ -63,6 +63,9 @@ See `.env` file for configuration.
 - `PUT /api/policies/:id` - Update policy
 - `DELETE /api/policies/:id` - Delete policy
 
+Notes:
+- Policies named with "Admin" will automatically include `iam:AssumeRole` in their actions if not already present. This ensures admin users can call the assume-role endpoint, while actual role assumption still requires the role’s trust policy to explicitly allow the caller’s `userId`.
+
 ## Architecture
 
 This service is completely separate from the Angular SSR application:

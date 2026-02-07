@@ -33,26 +33,9 @@ export class ManagementService {
    * Returns an observable with the user details or throws error.
    * Also updates the BehaviorSubject and parses scopes/roles.
    */
-  getProduct(productId: string): Observable<any> {
-    console.log('[UserService] Fetching /api/product');
-    return new Observable(observer => {
-      this.http.get('/api/resource/products', { withCredentials: true }).subscribe({
-        next: (data: any) => {
-          console.log('[UserService] Fetched user details:', data);
-          this.userDetailsSubject.next(data);
-          this.scopes = Array.isArray(data?.scopes) ? data.scopes : (typeof data?.scope === 'string' ? data.scope.split(' ') : []);
-          this.roles = Array.isArray(data?.roles) ? data.roles : (typeof data?.role === 'string' ? data.role.split(' ') : []);
-          observer.next(data);
-          observer.complete();
-        },
-        error: (err) => {
-          this.userDetailsSubject.next(null);
-          this.scopes = [];
-          this.roles = [];
-          observer.error(err);
-        }
-      });
-    });
+  getProductBySku(sku: string): Observable<Product> {
+    const url = `/api/resource/products/${encodeURIComponent(sku)}`;
+    return this.http.get<Product>(url, { withCredentials: true });
   }
 
   /**

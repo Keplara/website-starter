@@ -3,13 +3,14 @@ import mongoose from 'mongoose';
 // Define Role schema to match interfaces.Role
 const roleSchema = new mongoose.Schema(
   {
-    roleId: { type: String, required: true, unique: true },
     name: { type: String, required: true, unique: true },
     description: { type: String },
     // Store policy IDs (string identifiers)
     policies: [{ type: String }],
     // Optional max session duration
     maxSessionDuration: { type: Number },
+    // Trust policy controlling who can assume this role
+    trustPolicy: { type: mongoose.Schema.Types.Mixed },
   },
   { timestamps: true }
 );
@@ -99,3 +100,22 @@ userPolicySchema.index({ userId: 1, policyId: 1 }, { unique: true });
 
 export const UserPolicyModel =
   mongoose.models.UserPolicy || mongoose.model('UserPolicy', userPolicySchema);
+
+// Assumed Role Session model for session-based role assumption (no tokens)
+const assumedRoleSessionSchema = new mongoose.Schema(
+  {
+    userId: { type: String, required: true, index: true },
+    roleName: { type: String, required: true },
+    roleId: { type: String },
+    expiresAt: { type: Date, required: true, index: true },
+    active: { type: Boolean, default: true },
+    metadata: mongoose.Schema.Types.Mixed,
+  },
+  { timestamps: true }
+);
+
+// TTL index to auto-remove expired sessions
+assumedRoleSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+export const AssumedRoleSessionModel =
+  mongoose.models.AssumedRoleSession || mongoose.model('AssumedRoleSession', assumedRoleSessionSchema);

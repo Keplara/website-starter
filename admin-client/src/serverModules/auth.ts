@@ -123,7 +123,7 @@ router.get('/oauth/callback', async (req, res) => {
   }
 });
 
-// /api/refresh
+// /oauth/refresh
 router.post('/oauth/refresh', async (req, res) => {
   const refreshToken = (req.session as any).refreshToken;
   if (!refreshToken) {
